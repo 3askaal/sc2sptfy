@@ -6,6 +6,6 @@ export function Login() {
   const { login } = useSpotify()
 
   return (
-    <Button s={{ background: THEME.colors.sptfyGradient, color: 'black', border: 0 }} onClick={login}>Authenticate with Spotify</Button>
+    <Button s={{ background: THEME.colors.sptfyGradient, border: 0 }} onClick={login}>Authenticate with Spotify</Button>
   )
 }
