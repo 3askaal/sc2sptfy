@@ -7,17 +7,22 @@ export const fonts = {
   logo: "'Teko', sans-serif",
 }
 
+const black = brighten('#000', .5);
+const white = darken('#fff', .5);
+
 const PRIMARY = '#865DFF'
 const SECONDARY = '#E90064'
 
 const SUCCESS = '#59CE8F'
 
-const sc = chroma('#ff5500').brighten(1).desaturate(0).hex()
-const sptfy = chroma('#1ed760').brighten(1).desaturate(0).hex()
+const sc = chroma('#ff5500').hex()
+const sptfy = chroma('#1ed760').hex()
 
 export const THEME = {
   rootFontSizes: ['10px', '14px', '16px'],
   colors: {
+    black,
+    white,
     primary: PRIMARY,
     primaryDark: darken(PRIMARY, .5),
     primaryLight: brighten(PRIMARY, 1),
@@ -26,12 +31,12 @@ export const THEME = {
     secondaryLight: brighten(SECONDARY, 1.5),
     background: brighten('#000', .5),
     backgroundDark: darken('#212121', .5),
-    color: darken('#fff', .5),
+    color: white,
     success: SUCCESS,
     sc,
     sptfy,
-    scGradient: `-webkit-linear-gradient(${darken(sc, 0)} 50%, ${darken(sc, 1)})`,
-    sptfyGradient: `-webkit-linear-gradient(${darken(sptfy, 0)} 50%, ${darken(sptfy, 1)})`,
+    scGradient: `-webkit-linear-gradient(${darken(sc, 0)} 50%, ${darken(sc, .75)})`,
+    sptfyGradient: `-webkit-linear-gradient(${darken(sptfy, 0)} 50%, ${darken(sptfy, .75)})`,
   },
   components: {
     Button: {
