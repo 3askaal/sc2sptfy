@@ -24,20 +24,21 @@ export const THEME = {
     secondary: SECONDARY,
     secondaryDark: darken(SECONDARY, 1),
     secondaryLight: brighten(SECONDARY, 1.5),
-    background: '#212121',
+    background: brighten('#000', .5),
     backgroundDark: darken('#212121', .5),
-    color: darken('#fff', 0.75),
+    color: darken('#fff', .5),
     success: SUCCESS,
     sc,
     sptfy,
-    scGradient: `-webkit-linear-gradient(${sc}, ${darken(sc, 1)})`,
-    sptfyGradient: `-webkit-linear-gradient(${sptfy}, ${darken(sptfy, 1)})`,
+    scGradient: `-webkit-linear-gradient(${darken(sc, 0)} 50%, ${darken(sc, 1)})`,
+    sptfyGradient: `-webkit-linear-gradient(${darken(sptfy, 0)} 50%, ${darken(sptfy, 1)})`,
   },
   components: {
     Button: {
       default: {
         borderRadius: '5rem',
-        px: 'm'
+        px: 'm',
+        color: 'black'
       }
     },
     Label: {
