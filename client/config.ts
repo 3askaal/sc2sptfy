@@ -4,4 +4,5 @@ dotenvJSON({ path: "./env.json"});
 export const CONFIG: any = {
   SC: JSON.parse(process.env.SC || ''),
   SPTFY: JSON.parse(process.env.SPTFY || ''),
+  API: JSON.parse(process.env.API || ''),
 }

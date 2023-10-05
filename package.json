@@ -3,10 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "run:client": "cd client && yarn dev",
+    "dev:client": "cd client && yarn dev",
     "build:client": "cd client && yarn build",
     "start:client": "cd client && yarn start",
     "lint:client": "cd client && yarn lint",
+    "dev:server": "cd server && yarn start",
+    "build:server": "cd server && yarn build",
+    "start:server": "cd server && yarn start",
+    "lint:server": "cd server && yarn lint",
+    "dev:both": "yarn dev:client && yarn dev:server",
     "gen": "npx tsx ./scripts/gen.ts",
     "gen-sc": "npx tsx ./scripts/gen-sc.ts",
     "gen-sptfy": "npx tsx ./scripts/gen-sptfy.ts"
