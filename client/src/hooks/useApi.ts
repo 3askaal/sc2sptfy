@@ -4,10 +4,10 @@ export default function useApi() {
   const { query: { code }, replace } = useRouter();
 
   const searchUsers = () => {}
-  const getLikes = () => {}
+  const getFavorites = () => {}
 
   return {
     searchUsers,
-    getLikes
+    getFavorites
   };
 }
