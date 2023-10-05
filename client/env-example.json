@@ -1,0 +1,23 @@
+{
+  "SC": {
+    "BASE_URL": "",
+    "CLIENT_ID": "",
+    "CLIENT_SECRET": "",
+    "REDIRECT_URI": "",
+    "USERS": [
+      ["userName", "userId"],
+      ["userName", "userId"],
+      ["userName", "userId"]
+    ]
+  },
+  "SPTFY": {
+    "CLIENT_ID": "",
+    "CLIENT_SECRET": "",
+    "REDIRECT_URI": "",
+    "USERS": [
+      ["userName", "userId"],
+      ["userName", "userId"],
+      ["userName", "userId"]
+    ]
+  }
+}
