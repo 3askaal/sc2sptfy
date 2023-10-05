@@ -10,7 +10,7 @@ export class AppController {
     return this.appService.searchUsers(params.query);
   }
 
-  @Get('sc/likes/:userid')
+  @Get('sc/favorites/:userid')
   async getFavorites(@Param() params): Promise<any> {
     return this.appService.getFavorites(params.userid);
   }
