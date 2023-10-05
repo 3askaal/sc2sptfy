@@ -3,7 +3,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { HttpService } from '@nestjs/axios';
 import sequential from 'promise-sequential';
-import { CONFIG } from '../../config';
+import { CONFIG } from '../config';
 
 @Injectable()
 export class AppService {
@@ -17,6 +17,8 @@ export class AppService {
   }
 
   async getFavorites(userId: string): Promise<any> {
+    const limit = 1000;
+
     const favorites = await sequential(
       ['tracks', 'playlists'].map((type) => async () => {
         const items = [];
@@ -30,9 +32,7 @@ export class AppService {
             throw err;
           }
 
-          path =
-            success.next_href &&
-            success.next_href.split('https://api.soundcloud.com/')[1];
+          path = success.next_href?.split('https://api.soundcloud.com/')[1];
 
           items.push(...success.collection);
         }

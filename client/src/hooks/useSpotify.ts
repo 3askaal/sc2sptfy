@@ -46,6 +46,7 @@ export default function useSpotify() {
 
     if (authSuccess?.authenticated) {
       setSdk(() => internalSdk);
+      replace('/create')
     }
   }
 
