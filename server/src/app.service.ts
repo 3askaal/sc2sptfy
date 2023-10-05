@@ -2,10 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { HttpService } from '@nestjs/axios';
-import sequential from 'promise-sequential';
 import { CONFIG } from '../config';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
+import promiseSequential from 'promise-sequential';
 
 @Injectable()
 export class AppService {
@@ -27,22 +27,18 @@ export class AppService {
   async getFavorites(userId: string): Promise<any> {
     const limit = 1000;
 
-    const favorites = await sequential(
+    const favorites = await promiseSequential(
       ['tracks', 'playlists'].map((type) => async () => {
         const items = [];
 
         let path = `users/${userId}/likes/${type}?linked_partitioning=true&limit=${limit}`;
 
         while (path) {
-          const [err, success] = await this.get(path);
+          const data = await this.get(path);
 
-          if (err) {
-            throw err;
-          }
+          path = data.next_href?.split('https://api.soundcloud.com/')[1];
 
-          path = success.next_href?.split('https://api.soundcloud.com/')[1];
-
-          items.push(...success.collection);
+          items.push(...data.collection);
         }
 
         return items;
@@ -73,8 +69,7 @@ export class AppService {
         })
         .pipe(
           catchError((error: AxiosError) => {
-            console.log('error: ', error);
-            throw 'An error happened!';
+            throw error;
           }),
         ),
     );
@@ -96,8 +91,7 @@ export class AppService {
         })
         .pipe(
           catchError((error: AxiosError) => {
-            console.log('error: ', error);
-            throw 'An error happened!';
+            throw error;
           }),
         ),
     );
@@ -124,8 +118,7 @@ export class AppService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            console.log('error: ', error);
-            throw 'An error happened!';
+            throw error;
           }),
         ),
     );

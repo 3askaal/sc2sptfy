@@ -1,4 +1,4 @@
-import * as dotenvJSON from 'complex-dotenv-json';
+import dotenvJSON from 'complex-dotenv-json';
 dotenvJSON({ path: './env.json' });
 
 export const CONFIG: any = {
