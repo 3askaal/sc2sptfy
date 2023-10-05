@@ -1,6 +1,5 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { AppService } from './app.service';
-import { sc } from '../../utils';
 
 @Controller()
 export class AppController {
@@ -12,7 +11,7 @@ export class AppController {
   }
 
   @Get('sc/likes/:userid')
-  async getLikes(@Param() params): Promise<any> {
-    return this.appService.getLikes(params.userid);
+  async getFavorites(@Param() params): Promise<any> {
+    return this.appService.getFavorites(params.userid);
   }
 }
