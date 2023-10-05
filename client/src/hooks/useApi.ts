@@ -1,10 +1,13 @@
+import { useEffect, useState } from 'react';
 import useAxios from 'axios-hooks';
-import { CONFIG } from '../../config';
 
 export default function useApi() {
-  const [{ data: users }, searchUsers] = useAxios<any>(
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+
+  const [{ data: users = [] }, searchUsers] = useAxios<any>(
     {
-      url: `${CONFIG.API.BASE_URL}/sc/users`,
+      url: `${process.env.NEXT_PUBLIC_API_URL}/sc/users/${searchQuery}`,
       method: 'GET',
     },
     { manual: true }
@@ -12,16 +15,26 @@ export default function useApi() {
 
   const [{ data: favorites }, getFavorites] = useAxios<any>(
     {
-      url: `${CONFIG.API.BASE_URL}/sc/likes`,
+      url: `${process.env.NEXT_PUBLIC_API_URL}/sc/likes/${selectedUser?.id}`,
       method: 'GET'
     },
     { manual: true }
   )
+
+  useEffect(() => {
+    if (searchQuery.length > 3) {
+      searchUsers()
+    }
+  }, [searchQuery])
 
   return {
     users,
     searchUsers,
     favorites,
     getFavorites,
+    searchQuery,
+    setSearchQuery,
+    selectedUser,
+    setSelectedUser
   };
 }
