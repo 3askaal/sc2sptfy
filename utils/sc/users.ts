@@ -13,3 +13,13 @@ export const getUser = async (userName: string) => {
 
   return user;
 }
+
+export const searchUsers = async (searchQuery: string) => {
+  const [err, success] = await request(`users?q=${searchQuery}`);
+
+  if (err) {
+    throw err;
+  }
+
+  return success.json() as any;
+}

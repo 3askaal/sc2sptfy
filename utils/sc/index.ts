@@ -1,3 +1,3 @@
-export * from './getAccessToken';
-export * from './getUser';
-export * from './getLikes';
+export * from './authentication';
+export * from './users';
+export * from './favorites';
