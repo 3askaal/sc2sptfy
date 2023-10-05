@@ -3,6 +3,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { HttpService } from '@nestjs/axios';
 import sequential from 'promise-sequential';
+import { CONFIG } from '../../config';
 
 @Injectable()
 export class AppService {
@@ -17,7 +18,7 @@ export class AppService {
 
   async getFavorites(userId: string): Promise<any> {
     const favorites = await sequential(
-      ['likes', 'playlists'].map((type) => async () => {
+      ['tracks', 'playlists'].map((type) => async () => {
         const items = [];
 
         let path = `users/${userId}/likes/${type}?linked_partitioning=true&limit=${limit}`;
