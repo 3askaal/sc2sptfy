@@ -2,7 +2,7 @@ import { stringify } from "querystring";
 import { to } from "await-to-js";
 import fetch from "node-fetch";
 import mongoose, { Schema } from 'mongoose';
-import { CONFIG } from "../../client/config";
+import { CONFIG } from "../../config";
 
 mongoose.connect('mongodb://127.0.0.1:27017/collabify');
 
