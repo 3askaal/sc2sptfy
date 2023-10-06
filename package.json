@@ -13,8 +13,8 @@
     "lint:server": "cd server && yarn lint",
     "dev:both": "yarn dev:client && yarn dev:server",
     "gen": "npx tsx ./scripts/gen.ts",
-    "gen-sc": "npx tsx ./scripts/gen-sc.ts",
-    "gen-sptfy": "npx tsx ./scripts/gen-sptfy.ts"
+    "gen:sc": "npx tsx ./scripts/gen-sc.ts",
+    "gen:sptfy": "npx tsx ./scripts/gen-sptfy.ts"
   },
   "devDependencies": {
     "@spotify/web-api-ts-sdk": "^1.1.2",
