@@ -16,9 +16,9 @@ export default function useApi() {
     { manual: true }
   )
 
-  const [{ data: favorites = [] }, getFavorites] = useAxios<any>(
+  const [{ data: generateRes = [] }, generate] = useAxios<any>(
     {
-      url: `${process.env.NEXT_PUBLIC_API_URL}/sc/favorites/${selectedUser?.id}`,
+      url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${selectedUser?.id}`,
       method: 'GET'
     },
     { manual: true }
@@ -33,18 +33,17 @@ export default function useApi() {
   useEffect(() => {
     if (!selectedUser) return;
 
-    getFavorites()
+    generate()
   }, [selectedUser])
 
   useEffect(() => {
-    console.log('favorites: ', favorites);
-  }, [favorites])
+    console.log('generateRes: ', generateRes);
+  }, [generateRes])
 
   return {
     users,
     searchUsers,
-    favorites,
-    getFavorites,
+    generate,
     searchQuery,
     setSearchQuery,
     selectedUser,
