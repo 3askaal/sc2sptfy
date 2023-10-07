@@ -45,9 +45,12 @@ export class AppService {
       }),
     );
 
-    return favorites.map(({ kind, title, genre, user }) => ({
+    console.log('favorite: ', favorites[0]);
+
+    return favorites.map(({ kind, title, genre, user, duration }) => ({
       kind,
       title,
+      duration,
       ...(genre && {
         genre,
       }),
