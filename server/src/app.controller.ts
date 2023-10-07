@@ -18,30 +18,30 @@ export class AppController {
   async generate(@Param() { userId, scUser, accessToken }): Promise<any> {
     const sdk = SpotifyApi.withAccessToken(CONFIG.SPTFY.CLIENT_ID, accessToken);
 
-    const items = (await this.appService.getFavorites(scUser.id))
+    const scItems = (await this.appService.getFavorites(scUser.id))
       .filter(({ kind }) => kind === 'track')
       .filter(({ duration }) => Math.floor(duration / 60000) < 20);
 
     const tracks = await sequential(
-      items.slice(0, 50).map((item) => async () => {
+      scItems.slice(0, 50).map((scItem) => async () => {
         const [sptfySearchErr, sptfySearchSuccess] = await to(
-          sdk.search(item.title, ['track']),
+          sdk.search(scItem.title, ['track']),
         );
 
         if (sptfySearchErr) throw sptfySearchErr;
 
-        const stringifiedItem = JSON.stringify(
-          Object.values(item),
+        const scItemString = JSON.stringify(
+          Object.values(scItem),
         ).toLowerCase();
 
-        const matches = sptfySearchSuccess.tracks.items.filter((result) => {
-          const criticalValues = [
-            result.name,
-            ...result.artists.map(({ name }) => name),
+        const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
+          const sptfyItemValues = [
+            sptfyItem.name,
+            ...sptfyItem.artists.map(({ name }) => name),
           ];
 
-          return criticalValues.every((value) =>
-            stringifiedItem.includes(value.toLowerCase()),
+          return sptfyItemValues.every((sptfyItemValue) =>
+            scItemString.includes(sptfyItemValue.toLowerCase()),
           );
         });
 
@@ -65,15 +65,11 @@ export class AppController {
 
     if (createPlaylistErr) throw createPlaylistErr;
 
-    const spotifyId = createPlaylistSuccess.id;
-
     const [addItemsToPlaylistErr] = await to(
-      sdk.playlists.addItemsToPlaylist(spotifyId, tracklist),
+      sdk.playlists.addItemsToPlaylist(createPlaylistSuccess.id, tracklist),
     );
 
-    if (addItemsToPlaylistErr) {
-      throw addItemsToPlaylistErr;
-    }
+    if (addItemsToPlaylistErr) throw addItemsToPlaylistErr;
 
     return tracks;
   }
