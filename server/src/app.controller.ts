@@ -1,9 +1,11 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import sequential from 'promise-sequential';
 import to from 'await-to-js';
 import { AppService } from './app.service';
 import { CONFIG } from '../config';
+
+const GENERATION_STATUS: { [id: string]: number } = {};
 
 @Controller()
 export class AppController {
@@ -14,16 +16,24 @@ export class AppController {
     return this.appService.searchUsers(params.query);
   }
 
-  @Get('generate/:id')
-  async generate(@Param() { userId, scUser, accessToken }): Promise<any> {
+  @Post('generate/:id')
+  async generate(@Body() { user, accessToken }): Promise<any> {
     const sdk = SpotifyApi.withAccessToken(CONFIG.SPTFY.CLIENT_ID, accessToken);
 
-    const scItems = (await this.appService.getFavorites(scUser.id))
+    const currentUser = await sdk.currentUser.profile();
+
+    GENERATION_STATUS[currentUser.id] = 0;
+
+    const scItems = (await this.appService.getFavorites(user.id))
       .filter(({ kind }) => kind === 'track')
-      .filter(({ duration }) => Math.floor(duration / 60000) < 20);
+      .filter(({ duration }) => Math.floor(duration / 60000) < 20)
+      .slice(0, 50);
 
     const tracks = await sequential(
-      scItems.slice(0, 50).map((scItem) => async () => {
+      scItems.map((scItem, index: number) => async () => {
+        GENERATION_STATUS[currentUser.id] =
+          Math.floor(index / scItems.length) * 100;
+
         const [sptfySearchErr, sptfySearchSuccess] = await to(
           sdk.search(scItem.title, ['track']),
         );
@@ -56,8 +66,8 @@ export class AppController {
     const tracklist = tracks.map(({ id }) => id);
 
     const [createPlaylistErr, createPlaylistSuccess] = await to(
-      sdk.playlists.createPlaylist(userId, {
-        name: scUser.name,
+      sdk.playlists.createPlaylist(currentUser.id, {
+        name: user.name,
         description: 'Generated with http://sc2sptfy.vercel.app',
         public: false,
       }),
@@ -72,5 +82,10 @@ export class AppController {
     if (addItemsToPlaylistErr) throw addItemsToPlaylistErr;
 
     return tracks;
+  }
+
+  @Get('generate/:id/status')
+  async status(@Param() { userId }): Promise<any> {
+    return GENERATION_STATUS[userId];
   }
 }
