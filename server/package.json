@@ -27,6 +27,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@spotify/web-api-ts-sdk": "^1.1.2",
     "@types/promise-sequential": "^1.1.0",
+    "await-to-js": "^3.0.0",
     "axios": "^1.5.1",
     "cache-manager": "^5.2.3",
     "complex-dotenv-json": "^1.1.3",
