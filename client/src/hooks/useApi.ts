@@ -1,26 +1,22 @@
 import { useContext, useEffect, useState } from 'react';
 import useAxios from 'axios-hooks';
-import { useDebounce } from 'usehooks-ts';
+import { useDebounce, useInterval } from 'usehooks-ts';
 import useSpotify from './useSpotify';
 
 export default function useApi() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState<any>(null)
-  const [isGenerating, setIsGenerating] = useState<boolean>(false)
-  const [generationStatus, setGenerationStatus] = useState<number | null>(null)
   const { accessToken } = useSpotify()
-
-  const debouncedSearchQuery = useDebounce<string>(searchQuery, 500)
 
   let [{ data: users = [] }, searchUsers] = useAxios<any>(
     {
-      url: `${process.env.NEXT_PUBLIC_API_URL}/sc/users/${searchQuery}`,
+      url: `${process.env.NEXT_PUBLIC_API_URL}/users/${searchQuery}`,
       method: 'GET',
     },
     { manual: true }
   )
 
-  const [{ data: generateRes = [] }, generate] = useAxios<any>(
+  const [{ data: generateProcessId }, generate] = useAxios<any>(
     {
       url: `${process.env.NEXT_PUBLIC_API_URL}/generate`,
       method: 'POST'
@@ -28,13 +24,15 @@ export default function useApi() {
     { manual: true }
   )
 
-  const [{ data: statusRes = [] }, status] = useAxios<any>(
+  const [{ data: generateStatus }, status] = useAxios<any>(
     {
       url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${selectedUser?.id}/status`,
       method: 'POST'
     },
     { manual: true }
   )
+
+  const debouncedSearchQuery = useDebounce<string>(searchQuery, 500)
 
   useEffect(() => {
     if (debouncedSearchQuery.length <= 3) return;
@@ -51,18 +49,11 @@ export default function useApi() {
         accessToken
       }
     })
-
-    setIsGenerating(true)
   }, [selectedUser])
 
-  useEffect(() => {
-    if (!isGenerating) return;
-
-  }, [isGenerating])
-
-  useEffect(() => {
-    console.log('generateRes: ', generateRes);
-  }, [generateRes])
+  useInterval(() => {
+    status();
+  }, generateProcessId && generateStatus !== 100 ? 3000 : null);
 
   return {
     users,
@@ -71,6 +62,7 @@ export default function useApi() {
     searchQuery,
     setSearchQuery,
     selectedUser,
-    setSelectedUser
+    setSelectedUser,
+    generateStatus
   };
 }
