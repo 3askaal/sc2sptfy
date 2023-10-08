@@ -13,9 +13,4 @@ export const LocalGlobalStyle = createGlobalStyle({
   a: {
     textDecoration: 'none',
   },
-
-  svg: {
-    maxWidth: '14px',
-    maxHeight: '14px',
-  }
 })
