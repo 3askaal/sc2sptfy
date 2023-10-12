@@ -4,13 +4,10 @@ import { SpotifyApi, AuthorizationCodeWithPKCEStrategy, AccessToken } from "@spo
 import { useLocalStorage } from 'usehooks-ts';
 import to from 'await-to-js';
 
-// const getExpiresAt = (expiresIn: number): string => moment().add(expiresIn, 'seconds').valueOf().toString()
-
 export default function useSpotify() {
   const { query: { code }, replace } = useRouter();
 
   const [sdk, setSdk] = useState<SpotifyApi | null>(null);
-
   const [accessToken, setAccessToken] = useLocalStorage<AccessToken | null>('accessToken', '')
 
   useEffect(() => {
@@ -45,10 +42,13 @@ export default function useSpotify() {
     }
 
     if (authSuccess?.authenticated) {
+      setAccessToken(authSuccess.accessToken)
       setSdk(() => internalSdk);
       replace('/create')
     }
   }
+
+
 
   const logout = () => {
     sdk?.logOut();

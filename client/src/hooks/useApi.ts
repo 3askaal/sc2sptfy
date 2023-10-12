@@ -1,10 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import useAxios from 'axios-hooks';
 import { useDebounce } from 'usehooks-ts';
+import useSpotify from './useSpotify';
 
 export default function useApi() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [isGenerating, setIsGenerating] = useState<boolean>(false)
+  const [generationStatus, setGenerationStatus] = useState<number | null>(null)
+  const { accessToken } = useSpotify()
 
   const debouncedSearchQuery = useDebounce<string>(searchQuery, 500)
 
@@ -18,8 +22,16 @@ export default function useApi() {
 
   const [{ data: generateRes = [] }, generate] = useAxios<any>(
     {
-      url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${selectedUser?.id}`,
-      method: 'GET'
+      url: `${process.env.NEXT_PUBLIC_API_URL}/generate`,
+      method: 'POST'
+    },
+    { manual: true }
+  )
+
+  const [{ data: statusRes = [] }, status] = useAxios<any>(
+    {
+      url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${selectedUser?.id}/status`,
+      method: 'POST'
     },
     { manual: true }
   )
@@ -33,8 +45,20 @@ export default function useApi() {
   useEffect(() => {
     if (!selectedUser) return;
 
-    generate()
+    generate({
+      data: {
+        user: selectedUser,
+        accessToken
+      }
+    })
+
+    setIsGenerating(true)
   }, [selectedUser])
+
+  useEffect(() => {
+    if (!isGenerating) return;
+
+  }, [isGenerating])
 
   useEffect(() => {
     console.log('generateRes: ', generateRes);
