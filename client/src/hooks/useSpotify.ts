@@ -48,8 +48,6 @@ export default function useSpotify() {
     }
   }
 
-
-
   const logout = () => {
     sdk?.logOut();
     setSdk(null);

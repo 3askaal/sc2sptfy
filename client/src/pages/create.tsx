@@ -2,7 +2,7 @@ import { Spacer, Input, List, ListItem } from '3oilerplate'
 import useApi from '@/hooks/useApi'
 
 export default function Create() {
-  const { users, setSearchQuery, selectedUser, setSelectedUser } = useApi()
+  const { users, setSearchQuery, selectedUser, setSelectedUser, generateStatus } = useApi()
 
   return (
     <Spacer size="xl" s={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
@@ -21,6 +21,8 @@ export default function Create() {
           </ListItem>
         )) }
       </List>
+
+      { generateStatus }
     </Spacer>
   )
 }

@@ -4,36 +4,41 @@ import sequential from 'promise-sequential';
 import to from 'await-to-js';
 import { AppService } from './app.service';
 import { CONFIG } from '../config';
-
-const GENERATION_STATUS: { [id: string]: number } = {};
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { DocumentDocument } from './app.schema';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    @InjectModel(Document.name) private documentModel: Model<DocumentDocument>,
+  ) {}
 
-  @Get('sc/users/:query')
+  @Get('users/:query')
   async getUsers(@Param() params): Promise<any> {
     return this.appService.searchUsers(params.query);
   }
 
-  @Post('generate/:id')
+  @Post('generate')
   async generate(@Body() { user, accessToken }): Promise<any> {
     const sdk = SpotifyApi.withAccessToken(CONFIG.SPTFY.CLIENT_ID, accessToken);
-
     const currentUser = await sdk.currentUser.profile();
-
-    GENERATION_STATUS[currentUser.id] = 0;
 
     const scItems = (await this.appService.getFavorites(user.id))
       .filter(({ kind }) => kind === 'track')
       .filter(({ duration }) => Math.floor(duration / 60000) < 20)
       .slice(0, 50);
 
+    const doc = await this.documentModel.create({
+      sptfyUser: currentUser.id,
+      scUser: user.id,
+      amount: scItems.length,
+      status: 0,
+    });
+
     const tracks = await sequential(
       scItems.map((scItem, index: number) => async () => {
-        GENERATION_STATUS[currentUser.id] =
-          Math.floor(index / scItems.length) * 100;
-
         const [sptfySearchErr, sptfySearchSuccess] = await to(
           sdk.search(scItem.title, ['track']),
         );
@@ -53,6 +58,10 @@ export class AppController {
           return sptfyItemValues.every((sptfyItemValue) =>
             scItemString.includes(sptfyItemValue.toLowerCase()),
           );
+        });
+
+        await this.documentModel.findByIdAndUpdate(doc.id, {
+          status: Math.floor(index / scItems.length) * 100,
         });
 
         return matches.map(({ id, name, artists }) => ({
@@ -81,11 +90,11 @@ export class AppController {
 
     if (addItemsToPlaylistErr) throw addItemsToPlaylistErr;
 
-    return tracks;
+    return doc.id;
   }
 
   @Get('generate/:id/status')
-  async status(@Param() { userId }): Promise<any> {
-    return GENERATION_STATUS[userId];
+  async status(@Param() { id }): Promise<any> {
+    return (await this.documentModel.findById(id)).status;
   }
 }

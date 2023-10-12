@@ -6,12 +6,16 @@ import { CONFIG } from '../config';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import promiseSequential from 'promise-sequential';
+import { Document, DocumentDocument } from './app.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class AppService {
   constructor(
     private readonly httpService: HttpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectModel(Document.name) private documentModel: Model<DocumentDocument>,
   ) {}
 
   async searchUsers(searchQuery: string): Promise<any> {
