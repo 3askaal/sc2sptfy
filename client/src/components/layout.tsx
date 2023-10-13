@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Box, Wrapper, Container, Button, List, ListItem } from '3oilerplate'
 import { User as UserIcon, ArrowLeft as ArrowLeftIcon } from 'react-feather'
 import { Logo } from './logo'
 import useSpotify from '../hooks/useSpotify'
 
 export function Layout({ children }: any) {
-  // const { push, back, query: { id: playlistId } } = useRouter()
-  const { accessToken } = useSpotify()
+  const pathname = usePathname()
+  const { accessToken, logout } = useSpotify()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const navigate = (route: string) => {
@@ -15,10 +15,12 @@ export function Layout({ children }: any) {
     // push(route)
   }
 
+  const shouldShowTopMenu = accessToken && pathname !== '/';
+
   return (
-    <Wrapper s={{ display: 'grid', gridTemplateRows: accessToken ? 'auto minmax(0, 1fr)' : 'auto', gridTemplateColumns: '1fr', justifyItems: 'center', gap: 'm' }}>
+    <Wrapper s={{ display: 'grid', gridTemplateRows: shouldShowTopMenu ? 'auto minmax(0, 1fr)' : 'auto', gridTemplateColumns: '1fr', justifyItems: 'center', gap: 'm' }}>
       {
-        accessToken && (
+        shouldShowTopMenu && (
           <>
             <Box df w100p jcc>
               <Logo small />
@@ -41,8 +43,8 @@ export function Layout({ children }: any) {
             { menuOpen && (
               <Box df s={{ position: 'absolute', top: 0, right: 0, m: 'm', mt: 'xxl', minWidth: '140px', zIndex: 400 }}>
                 <List s={{ borderRight: '1px solid', borderLeft: '1px solid', borderColor: 'primary', textAlign: 'center', cursor: 'pointer' }}>
-                  <ListItem onClick={() => navigate('/playlists')}>My Playlists</ListItem>
-                  <ListItem onClick={logout}>Logout</ListItem>
+                  {/* <ListItem onClick={() => navigate('/playlists')}>My Playlists</ListItem> */}
+                  <ListItem onClick={() => logout()}>Logout</ListItem>
                 </List>
               </Box>
             )}
