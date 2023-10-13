@@ -8,7 +8,7 @@ export default function useSpotify() {
   const { query: { code }, replace } = useRouter();
 
   const [sdk, setSdk] = useState<SpotifyApi | null>(null);
-  const [accessToken, setAccessToken] = useLocalStorage<AccessToken | null>('accessToken', '')
+  const [accessToken, setAccessToken] = useLocalStorage<AccessToken | null>('accessToken', null)
 
   useEffect(() => {
     if (!code) return

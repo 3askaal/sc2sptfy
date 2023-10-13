@@ -1,24 +1,22 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { HttpModule } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
 import { BullModule } from '@nestjs/bull';
 import { AppService } from './app.service';
-import { Document, DocumentSchema } from './app.schema';
 import { AppController } from './app.controller';
-import { CONFIG } from '../config';
 import { AppConsumer } from './app.consumer';
+import { URL } from 'url';
+
+const RedisUrl = new URL(process.env.REDIS_URI);
 
 @Module({
   imports: [
-    MongooseModule.forRoot(CONFIG.MONGODB_URI),
-    MongooseModule.forFeature([
-      { name: Document.name, schema: DocumentSchema },
-    ]),
     BullModule.forRoot({
       redis: {
-        host: 'localhost',
-        port: 6379,
+        host: RedisUrl.hostname,
+        port: Number(RedisUrl.port),
+        username: RedisUrl.username,
+        password: RedisUrl.password,
       },
     }),
     BullModule.registerQueue({

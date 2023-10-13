@@ -7,7 +7,6 @@ import {
   OnQueueProgress,
 } from '@nestjs/bull';
 import { Job } from 'bull';
-import { CONFIG } from '../config';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
 import sequential from 'promise-sequential';
@@ -30,7 +29,10 @@ export class AppConsumer {
   async generate(job: Job<any>) {
     const { scUser, accessToken } = job.data;
 
-    const sdk = SpotifyApi.withAccessToken(CONFIG.SPTFY.CLIENT_ID, accessToken);
+    const sdk = SpotifyApi.withAccessToken(
+      process.env.SPTFY_CLIENT_ID,
+      accessToken,
+    );
     const [getProfileErr, getProfileSuccess] = await to(
       sdk.currentUser.profile(),
     );
