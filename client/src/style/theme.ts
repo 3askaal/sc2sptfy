@@ -61,7 +61,7 @@ export const THEME = {
         background: sptfyGradient,
         color: 'black',
         border: 0,
-      }
+      },
     }
   },
 }

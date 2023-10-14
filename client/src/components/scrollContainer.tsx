@@ -26,10 +26,8 @@ export const SScrollContainer = s.div(({ theme }: any) => ({
 
 export const ScrollContainer = ({ children }: any) => {
   return (
-    <Box s={{ overflowY: 'auto' }}>
-      {/* <SScrollContainer> */}
-        { children }
-      {/* </SScrollContainer> */}
+    <Box s={{ width: '100%', overflowY: 'auto' }}>
+      { children }
     </Box>
   )
 }
