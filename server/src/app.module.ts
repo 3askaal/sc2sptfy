@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
 import { BullModule } from '@nestjs/bull';
+import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
 import { AppConsumer } from './app.consumer';
@@ -27,6 +28,7 @@ const redisConfig = () => {
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     BullModule.forRoot({
       redis: redisConfig(),
     }),
