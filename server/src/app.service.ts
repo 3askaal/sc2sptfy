@@ -69,7 +69,7 @@ export class AppService {
         })
         .pipe(
           catchError((error: AxiosError) => {
-            console.error(error);
+            console.error('get: ', error);
             throw error;
           }),
         ),
@@ -92,7 +92,7 @@ export class AppService {
         })
         .pipe(
           catchError((error: AxiosError) => {
-            console.error(error);
+            console.error('post: ', error);
             throw error;
           }),
         ),
@@ -120,7 +120,7 @@ export class AppService {
         )
         .pipe(
           catchError((error: AxiosError) => {
-            console.error(error);
+            console.error('auth: ', error);
             throw error;
           }),
         ),
