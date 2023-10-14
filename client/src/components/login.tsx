@@ -6,6 +6,6 @@ export function Login() {
   const { login } = useSpotify()
 
   return (
-    <Button onClick={login}>Authenticate with Spotify</Button>
+    <Button sptfy onClick={login}>Authenticate with Spotify</Button>
   )
 }

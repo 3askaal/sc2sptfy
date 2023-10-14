@@ -7,7 +7,6 @@ import useSpotify from './useSpotify';
 export default function useApi() {
   const { replace } = useRouter();
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedUser, setSelectedUser] = useState<any>(null)
   const [jobId, setJobId] = useState<null | string>(null)
   const { accessToken } = useSpotify()
 
@@ -19,7 +18,7 @@ export default function useApi() {
     { manual: true }
   )
 
-  const [{ data: genJobId }, generate] = useAxios<any>(
+  const [{ data: genJobId }, generateCallback] = useAxios<any>(
     {
       url: `${process.env.NEXT_PUBLIC_API_URL}/generate`,
       method: 'POST'
@@ -27,7 +26,7 @@ export default function useApi() {
     { manual: true }
   )
 
-  const [{ data: jobStatus }, status] = useAxios<any>(
+  const [{ data: jobStatus }, statusCallback] = useAxios<any>(
     {
       url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${jobId || genJobId}/progress`,
       method: 'GET'
@@ -43,16 +42,14 @@ export default function useApi() {
     searchUsers()
   }, [debouncedSearchQuery])
 
-  useEffect(() => {
-    if (!selectedUser) return;
-
-    generate({
+  const generate = (user: any) => {
+    generateCallback({
       data: {
-        user: selectedUser,
+        user,
         accessToken
       }
     })
-  }, [selectedUser])
+  }
 
   useEffect(() => {
     if (!genJobId) return;
@@ -62,7 +59,7 @@ export default function useApi() {
   }, [genJobId])
 
   useInterval(() => {
-    status();
+    statusCallback();
   }, jobId && jobStatus?.progress !== 100 ? 2000 : null);
 
   return {
@@ -71,8 +68,6 @@ export default function useApi() {
     generate,
     searchQuery,
     setSearchQuery,
-    selectedUser,
-    setSelectedUser,
     jobId,
     setJobId,
     jobStatus

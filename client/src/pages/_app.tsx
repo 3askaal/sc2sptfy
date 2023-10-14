@@ -11,8 +11,8 @@ import { THEME, LocalGlobalStyle } from '../style'
 import 'reset-css/reset.css'
 import '../fonts.css'
 
-ReactGA.initialize('G-B4GVQFN1MH', {
-  testMode: process?.env?.NODE_ENV !== 'production'
+ReactGA.initialize('G-07YK46QS69', {
+  testMode: process.env.NODE_ENV !== 'production'
 })
 
 export const SApp = s.div(() => ({
@@ -40,6 +40,10 @@ const DynamicWrapper = dynamic(() => Promise.resolve(NonSSRWrapper), {
 })
 
 export default function App({ Component, pageProps }: AppProps) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('theme: ', mergeTheme(DEFAULT_THEME, THEME));
+  }
+
   return (
     <ThemeProvider theme={mergeTheme(DEFAULT_THEME, THEME)}>
       <DynamicWrapper>

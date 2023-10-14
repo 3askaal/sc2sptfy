@@ -1,19 +1,25 @@
-import { Spacer, Input, List, ListItem, Box } from '3oilerplate'
-import { ScrollContainer } from '@/components'
+import { Spacer, Input, List, ListItem, Box, Button } from '3oilerplate'
 import useApi from '@/hooks/useApi'
 import Image from 'next/image'
+import { useState } from 'react'
 
 export default function Create() {
-  const { users, setSearchQuery, selectedUser, setSelectedUser } = useApi()
+  const { users, setSearchQuery, generate } = useApi()
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  const onSearch = (searchQuery: string) => {
+    setSearchQuery(searchQuery);
+    setSelectedUser(null);
+  }
 
   return (
     <Spacer size="xl" s={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
       <Input
-        onChange={(searchQuery: string) => setSearchQuery(searchQuery)}
+        onChange={onSearch}
         s={{ width: '100% !important' }}
       />
       { !!users.length && (
-        <ScrollContainer>
+        <Box s={{ width: '100%', overflowY: 'auto', maxHeight: '50%' }}>
           <List>
             { users.map((user: any, index: number) => (
               <ListItem
@@ -23,9 +29,10 @@ export default function Create() {
                   bg: user?.id === selectedUser?.id ? 'primary' : null,
                   display: 'flex',
                   alignItems: 'center',
+                  cursor: 'pointer',
                 }}
               >
-                <Box s={{ overflow: 'hidden', borderRadius: '100%', mr: 'm', border: '1px solid', borderColor: 'white' }}>
+                <Box s={{ display: 'flex', overflow: 'hidden', borderRadius: '100%', mr: 'm', border: '1px solid', borderColor: 'primary' }}>
                   <Image
                     src={user.avatar_url}
                     width={40}
@@ -37,8 +44,11 @@ export default function Create() {
               </ListItem>
             )) }
           </List>
-        </ScrollContainer>
+        </Box>
       )}
+      { selectedUser && (
+        <Button onClick={() => generate(selectedUser)}>Generate</Button>
+      ) }
     </Spacer>
   )
 }
