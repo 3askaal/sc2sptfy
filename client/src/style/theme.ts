@@ -1,4 +1,4 @@
-import { darken, brighten } from '3oilerplate'
+import { darken, brighten, colors } from '3oilerplate'
 import chroma from 'chroma-js'
 
 export const fonts = {
@@ -27,7 +27,7 @@ export const THEME = {
   colors: {
     black,
     white,
-    primary: PRIMARY,
+    primary: colors.greys['60'],
     primaryDark: darken(PRIMARY, .5),
     primaryLight: brighten(PRIMARY, 1),
     secondary: SECONDARY,
@@ -57,11 +57,13 @@ export const THEME = {
       }
     },
     Button: {
-      default: {
-        background: sptfyGradient,
-        color: 'black',
-        border: 0,
-      },
-    }
+      variants: {
+        sptfy: {
+          background: sptfyGradient,
+          color: 'black',
+          border: 0,
+        }
+      }
+    },
   },
 }
