@@ -5,7 +5,7 @@ import { useDebounce, useInterval } from 'usehooks-ts';
 import useSpotify from './useSpotify';
 
 export default function useApi() {
-  const { replace } = useRouter();
+  const { replace, query: { id } } = useRouter();
   const [searchQuery, setSearchQuery] = useState('')
   const [jobId, setJobId] = useState<null | string>(null)
   const { accessToken } = useSpotify()
@@ -34,6 +34,14 @@ export default function useApi() {
     { manual: true }
   )
 
+  const [{ data: cancelRes }, cancelCallback] = useAxios<any>(
+    {
+      url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${jobId || genJobId}/cancel`,
+      method: 'GET'
+    },
+    { manual: true }
+  )
+
   const debouncedSearchQuery = useDebounce<string>(searchQuery, 500)
 
   useEffect(() => {
@@ -41,6 +49,17 @@ export default function useApi() {
 
     searchUsers()
   }, [debouncedSearchQuery])
+
+  useEffect(() => {
+    if (jobId) return;
+    if (!genJobId && !id) return;
+
+    if (genJobId) {
+      replace(`/status/${genJobId}`);
+    }
+
+    setJobId(genJobId || id);
+  }, [genJobId, id])
 
   const generate = (user: any) => {
     generateCallback({
@@ -51,25 +70,23 @@ export default function useApi() {
     })
   }
 
-  useEffect(() => {
-    if (!genJobId) return;
-
-    setJobId(genJobId)
-    replace(`/status/${genJobId}`)
-  }, [genJobId])
+  const cancel = () => {
+    cancelCallback();
+  }
 
   useInterval(() => {
     statusCallback();
   }, jobId && jobStatus?.progress !== 100 ? 2000 : null);
 
   return {
-    users,
-    searchUsers,
-    generate,
     searchQuery,
     setSearchQuery,
+    users,
+    searchUsers,
     jobId,
     setJobId,
-    jobStatus
+    jobStatus,
+    generate,
+    cancel,
   };
 }
