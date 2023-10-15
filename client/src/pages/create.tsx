@@ -13,7 +13,7 @@ export default function Create() {
   }
 
   return (
-    <Spacer size="xl" s={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+    <Spacer size="xl" s={{ alignItems: 'center', justifyContent: 'center' }}>
       <Input
         onChange={onSearch}
         s={{ width: '100% !important' }}

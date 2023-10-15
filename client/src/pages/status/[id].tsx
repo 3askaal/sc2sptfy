@@ -1,27 +1,32 @@
-import { Spacer, Text } from '3oilerplate'
+import { Spacer, Text, Button, Box, Link } from '3oilerplate'
 import { Loader } from '@/components/loader'
 import useApi from '@/hooks/useApi'
-import { useRouter } from 'next/router';
-import { useEffect } from 'react'
+import { THEME } from '@/style';
+import { ChevronsRight } from 'react-feather';
 
 export default function Create() {
-  const { query: { id } } = useRouter();
-  const { jobId, setJobId, jobStatus } = useApi()
+  const { jobStatus, cancel } = useApi()
 
-  useEffect(() => {
-    if (!jobId && id) {
-      setJobId(id as string)
-    }
-  }, [jobId, id])
+  const isCompleted = jobStatus?.progress === 100
 
   return (
-    <Spacer size="l" s={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-      <Spacer size="xxs" s={{ alignItems: 'center' }}>
-        <Text>Generating sc2sptfy playlist</Text>
-        <Text s={{ color: 'sc' }}>from: { jobStatus?.scUser.username }</Text>
-        <Text s={{ color: 'sptfy' }}>to: { jobStatus?.sptfyUser.display_name }</Text>
+    <Spacer size="xl" s={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+      <Spacer size="m" s={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+        <Text s={{ display: 'inline-flex', color: 'sc' }}>{ jobStatus?.scUser.username }</Text>
+        <ChevronsRight size={16} color={THEME.colors.primary} />
+        <Text s={{ display: 'inline-flex', color: 'sptfy' }}>{ jobStatus?.sptfyUser.display_name }</Text>
       </Spacer>
       <Loader progress={jobStatus?.progress} />
+
+      { isCompleted ? (
+        <Box df fdc aic>
+          <Link href={`https://open.spotify.com/playlist/${jobStatus.playlist.id}`} target='_blank'>
+            View playlist
+          </Link>
+        </Box>
+      ) : (
+        <Button onClick={() => cancel()}>Cancel</Button>
+      ) }
     </Spacer>
   )
 }
