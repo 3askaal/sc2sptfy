@@ -1,5 +1,4 @@
 export * from './login'
 export * from './layout'
 export * from './logo'
-export * from './scrollContainer'
-// export * from './loader'
+export * from './loader'
