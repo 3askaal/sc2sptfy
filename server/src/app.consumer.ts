@@ -4,14 +4,14 @@ import {
   OnQueueCompleted,
   OnQueueActive,
   OnQueueFailed,
-  OnQueueProgress,
 } from '@nestjs/bull';
 import { Job } from 'bull';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
 import sequential from 'promise-sequential';
 import to from 'await-to-js';
-import { chunk } from 'lodash';
+import { chunk, sortBy } from 'lodash';
+import similarity from 'similarity';
 
 const logMeta = ({ scUser, sptfyUser }) => {
   return `(from: ${scUser?.username || ''} to: ${
@@ -35,18 +35,30 @@ const findMatch = async (sdk: SpotifyApi, scItem: any, searchQuery: string) => {
     return null;
   }
 
-  const scItemString = lc(JSON.stringify(Object.values(scItem)));
+  const scItemString = [lc(scItem.title), lc(scItem.user)].join(' ');
 
-  const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
-    const sptfyItemValues = [
-      lc(sptfyItem.name),
-      ...sptfyItem.artists.map(({ name }) => lc(name)),
-    ];
+  console.log('##############################');
+  console.log('>', scItemString);
 
-    return sptfyItemValues.every((sptfyItemValue) =>
-      scItemString.includes(sptfyItemValue),
-    );
-  });
+  const matches = sortBy(
+    sptfySearchSuccess.tracks.items.map((sptfyItem) => {
+      const sptfyItemString = [
+        lc(sptfyItem.name),
+        ...sptfyItem.artists.map(({ name }) => lc(name)),
+      ].join(' ');
+
+      const strSimilarity = similarity(sptfyItemString, scItemString);
+
+      console.log('>', sptfyItemString, strSimilarity);
+
+      return {
+        ...sptfyItem,
+        similarity: strSimilarity,
+      };
+    }),
+    ['similarity'],
+    ['desc'],
+  );
 
   return matches.length ? matches[0] : null;
 };
@@ -88,7 +100,8 @@ export class AppConsumer {
 
     const scItems = getFavoritesSuccess
       .filter(({ kind }) => kind === 'track')
-      .filter(({ duration }) => Math.floor(duration / 60000) < 20);
+      .filter(({ duration }) => Math.floor(duration / 60000) < 20)
+      .slice(0, 20);
 
     const [mapSpotifyItemsErrors, mapSpotifyItemsSuccess] = await to(
       sequential(
