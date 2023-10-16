@@ -167,11 +167,6 @@ export class AppConsumer {
     console.log('Generation started!', logMeta(job.data));
   }
 
-  @OnQueueProgress()
-  onProgress(job: Job) {
-    console.log('Generation progress: ', job.progress(), logMeta(job.data));
-  }
-
   @OnQueueCompleted()
   onCompleted(job: Job) {
     console.log('Generation completed!', logMeta(job.data));
@@ -179,6 +174,9 @@ export class AppConsumer {
 
   @OnQueueFailed()
   onFailed(job: Job) {
-    console.log('Generation failed!', job.failedReason, logMeta(job.data));
+    console.log(
+      `Generation failed at ${job.progress()}% because of: ${job.failedReason}`,
+      logMeta(job.data),
+    );
   }
 }
