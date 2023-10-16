@@ -21,6 +21,36 @@ const logMeta = ({ scUser, sptfyUser }) => {
 
 const lc = (value: string) => value.toLowerCase();
 
+const findMatch = async (sdk: SpotifyApi, scItem: any, searchQuery: string) => {
+  const [sptfySearchErr, sptfySearchSuccess] = await to(
+    sdk.search(searchQuery, ['track']),
+  );
+
+  if (sptfySearchErr) {
+    console.error('sptfySearchErr: ', sptfySearchErr);
+    throw sptfySearchErr;
+  }
+
+  if (!sptfySearchSuccess.tracks.items.length) {
+    return null;
+  }
+
+  const scItemString = lc(JSON.stringify(Object.values(scItem)));
+
+  const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
+    const sptfyItemValues = [
+      lc(sptfyItem.name),
+      ...sptfyItem.artists.map(({ name }) => lc(name)),
+    ];
+
+    return sptfyItemValues.every((sptfyItemValue) =>
+      scItemString.includes(sptfyItemValue),
+    );
+  });
+
+  return matches.length ? matches[0] : null;
+};
+
 @Processor('generation')
 export class AppConsumer {
   constructor(private readonly appService: AppService) {}
@@ -33,6 +63,7 @@ export class AppConsumer {
       process.env.SPTFY_CLIENT_ID,
       accessToken,
     );
+
     const [getProfileErr, getProfileSuccess] = await to(
       sdk.currentUser.profile(),
     );
@@ -65,43 +96,20 @@ export class AppConsumer {
           const progress = Math.floor((index / scItems.length) * 95);
           await job.progress(progress);
 
-          const searchQuery = lc(scItem.title).includes(lc(scItem.user))
-            ? scItem.title
-            : `${scItem.user} ${scItem.title}`;
+          const searchQueries = [
+            lc(scItem.title),
+            `${lc(scItem.user)} ${lc(scItem.title)}`,
+          ];
 
-          const [sptfySearchErr, sptfySearchSuccess] = await to(
-            sdk.search(searchQuery, ['track']),
-          );
+          let match = null;
+          let lookupIndex = 0;
 
-          if (sptfySearchErr) {
-            console.error('sptfySearchErr: ', sptfySearchErr);
-            throw sptfySearchErr;
+          while (!match && lookupIndex < searchQueries.length) {
+            match = await findMatch(sdk, scItem, searchQueries[lookupIndex]);
+            lookupIndex++;
           }
 
-          if (!sptfySearchSuccess.tracks.items.length) {
-            return null;
-          }
-
-          const scItemString = lc(JSON.stringify(Object.values(scItem)));
-
-          const matches = sptfySearchSuccess.tracks.items.filter(
-            (sptfyItem) => {
-              const sptfyItemValues = [
-                lc(sptfyItem.name),
-                ...sptfyItem.artists.map(({ name }) => lc(name)),
-              ];
-
-              return sptfyItemValues.every((sptfyItemValue) =>
-                scItemString.includes(sptfyItemValue),
-              );
-            },
-          );
-
-          if (!matches.length) {
-            return null;
-          }
-
-          return matches[0].uri;
+          return match?.uri;
         }),
       ),
     );
