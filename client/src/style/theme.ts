@@ -48,9 +48,16 @@ export const THEME = {
         borderRight: 0,
         borderWidth: '1px',
         borderRadius: 0,
-        color: 'white',
+        color: 'black',
         paddingY: 'm',
         fontSize: '2rem'
+      }
+    },
+    Button: {
+      default: {
+        background: 'sptfyGradient',
+        color: 'black',
+        border: 0,
       }
     }
   },

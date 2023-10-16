@@ -13,4 +13,4 @@ export const LocalGlobalStyle = createGlobalStyle({
   a: {
     textDecoration: 'none',
   },
-})
+} as any)

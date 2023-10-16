@@ -2,20 +2,15 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { HttpService } from '@nestjs/axios';
-import { CONFIG } from '../config';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import promiseSequential from 'promise-sequential';
-import { Document, DocumentDocument } from './app.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 
 @Injectable()
 export class AppService {
   constructor(
     private readonly httpService: HttpService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @InjectModel(Document.name) private documentModel: Model<DocumentDocument>,
   ) {}
 
   async searchUsers(searchQuery: string): Promise<any> {
@@ -67,13 +62,14 @@ export class AppService {
 
     const { data } = await firstValueFrom(
       this.httpService
-        .get(`${CONFIG.SC.BASE_URL}/${path}`, {
+        .get(`${process.env.SC_BASE_URL}/${path}`, {
           headers: {
             Authorization: `OAuth ${accessToken}`,
           },
         })
         .pipe(
           catchError((error: AxiosError) => {
+            console.error(error);
             throw error;
           }),
         ),
@@ -89,13 +85,14 @@ export class AppService {
 
     const { data } = await firstValueFrom(
       this.httpService
-        .post(`${CONFIG.SC.BASE_URL}/${path}`, payload, {
+        .post(`${process.env.SC_BASE_URL}/${path}`, payload, {
           headers: {
             Authorization: `OAuth ${accessToken}`,
           },
         })
         .pipe(
           catchError((error: AxiosError) => {
+            console.error(error);
             throw error;
           }),
         ),
@@ -108,11 +105,11 @@ export class AppService {
     const { data } = await firstValueFrom(
       this.httpService
         .post(
-          `${CONFIG.SC.BASE_URL}/oauth2/token`,
+          `${process.env.SC_BASE_URL}/oauth2/token`,
           {
             grant_type: 'client_credentials',
-            client_id: CONFIG.SC.CLIENT_ID,
-            client_secret: CONFIG.SC.CLIENT_SECRET,
+            client_id: process.env.SC_CLIENT_ID,
+            client_secret: process.env.SC_CLIENT_SECRET,
           },
           {
             headers: {
@@ -123,6 +120,7 @@ export class AppService {
         )
         .pipe(
           catchError((error: AxiosError) => {
+            console.error(error);
             throw error;
           }),
         ),
