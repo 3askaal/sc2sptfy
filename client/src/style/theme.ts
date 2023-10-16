@@ -10,7 +10,7 @@ export const fonts = {
 const black = brighten('#000', .5);
 const white = darken('#fff', .5);
 
-const PRIMARY = '#865DFF'
+const PRIMARY = white
 const SECONDARY = '#E90064'
 
 const SUCCESS = '#59CE8F'
@@ -20,6 +20,7 @@ const sptfy = chroma('#1ed760').hex()
 
 export const THEME = {
   rootFontSizes: ['10px', '14px', '16px'],
+  fonts,
   colors: {
     black,
     white,
@@ -39,69 +40,6 @@ export const THEME = {
     sptfyGradient: `-webkit-linear-gradient(${darken(sptfy, 0)} 50%, ${darken(sptfy, .75)})`,
   },
   components: {
-    Button: {
-      default: {
-        borderRadius: '5rem',
-        px: 'm',
-        color: 'black'
-      }
-    },
-    Label: {
-      default: {
-        background: 'transparent',
-        textTransform: 'uppercase',
-        color: 'primary'
-      },
-      variants: {
-        isSelection: {
-          color: 'grey60',
-          border: '2px solid',
-          borderColor: 'grey60',
-          borderRadius: '5rem',
-          padding: 'xs',
-          cursor: 'pointer',
-
-          '> p': {
-            color: 'grey40',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          },
-        },
-        isSelected: {
-          color: 'primary',
-          borderColor: 'primary',
-          borderWidth: '2px',
-          userSelect: 'none',
-
-          '> p': {
-            color: 'white',
-          }
-        },
-        isWaiting: {
-          borderColor: 'grey30',
-          color: 'grey30',
-          display: 'inline-flex',
-          px: 'xs',
-          py: 'xxs'
-        },
-        isReleased: {
-          borderColor: 'success',
-          color: 'success',
-          display: 'inline-flex',
-          px: 'xs',
-          py: 'xxs'
-        }
-      }
-    },
-    Text: {
-      variants: {
-        isLabel: {
-          fontWeight: 'bold',
-          color: 'grey80',
-        }
-      }
-    },
     Input: {
       default: {
         px: 0,
@@ -111,17 +49,9 @@ export const THEME = {
         borderWidth: '1px',
         borderRadius: 0,
         color: 'white',
-      },
-      variants: {
-        huge: {
-          fontSize: '1.8rem',
-
-          '&::placeholder': {
-            color: 'grey90'
-          }
-        }
+        paddingY: 'm',
+        fontSize: '2rem'
       }
     }
   },
-  fonts
 }
