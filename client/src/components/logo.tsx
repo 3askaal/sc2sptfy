@@ -5,7 +5,7 @@ const SLogoSc = s.div(({ theme, color }: any) => ({
   background: theme.colors.scGradient,
   '-webkit-background-clip': 'text',
   '-webkit-text-fill-color': 'transparent',
-  marginRight: '.125rem'
+  marginRight: '.05rem'
 }))
 
 const SLogoSptfy = s.div(({ theme, color }: any) => ({
@@ -13,7 +13,7 @@ const SLogoSptfy = s.div(({ theme, color }: any) => ({
   background: theme.colors.sptfyGradient,
   '-webkit-background-clip': 'text',
   '-webkit-text-fill-color': 'transparent',
-  marginLeft: '.125rem'
+  marginLeft: '.05rem'
 }))
 
 export function Logo({ small }: any) {
