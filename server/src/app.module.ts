@@ -7,17 +7,28 @@ import { AppController } from './app.controller';
 import { AppConsumer } from './app.consumer';
 import { URL } from 'url';
 
-const RedisUrl = new URL(process.env.REDIS_URI);
+const redisConfig = () => {
+  if (process.env.NODE_ENV === 'production') {
+    const RedisUrl = new URL(process.env.REDIS_URI);
+
+    return {
+      host: RedisUrl.hostname,
+      port: Number(RedisUrl.port),
+      username: RedisUrl.username,
+      password: RedisUrl.password,
+    };
+  }
+
+  return {
+    host: 'localhost',
+    port: 6379,
+  };
+};
 
 @Module({
   imports: [
     BullModule.forRoot({
-      redis: {
-        host: RedisUrl.hostname,
-        port: Number(RedisUrl.port),
-        username: RedisUrl.username,
-        password: RedisUrl.password,
-      },
+      redis: redisConfig(),
     }),
     BullModule.registerQueue({
       name: 'generation',
