@@ -18,6 +18,9 @@ const SUCCESS = '#59CE8F'
 const sc = chroma('#ff5500').hex()
 const sptfy = chroma('#1ed760').hex()
 
+const scGradient = `-webkit-linear-gradient(${darken(sc, 0)} 50%, ${darken(sc, .75)})`
+const sptfyGradient = `-webkit-linear-gradient(${darken(sptfy, 0)} 50%, ${darken(sptfy, .75)})`
+
 export const THEME = {
   rootFontSizes: ['10px', '14px', '16px'],
   fonts,
@@ -36,8 +39,8 @@ export const THEME = {
     success: SUCCESS,
     sc,
     sptfy,
-    scGradient: `-webkit-linear-gradient(${darken(sc, 0)} 50%, ${darken(sc, .75)})`,
-    sptfyGradient: `-webkit-linear-gradient(${darken(sptfy, 0)} 50%, ${darken(sptfy, .75)})`,
+    scGradient,
+    sptfyGradient,
   },
   components: {
     Input: {
@@ -48,14 +51,14 @@ export const THEME = {
         borderRight: 0,
         borderWidth: '1px',
         borderRadius: 0,
-        color: 'black',
+        color: 'white',
         paddingY: 'm',
         fontSize: '2rem'
       }
     },
     Button: {
       default: {
-        background: 'sptfyGradient',
+        background: sptfyGradient,
         color: 'black',
         border: 0,
       }
