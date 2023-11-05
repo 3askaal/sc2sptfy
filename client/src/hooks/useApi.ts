@@ -18,7 +18,7 @@ export default function useApi() {
     { manual: true }
   )
 
-  const [{ data: genJobId }, generateCallback] = useAxios<any>(
+  const [{ data: generateRes }, generateCallback] = useAxios<any>(
     {
       url: `${process.env.NEXT_PUBLIC_API_URL}/generate`,
       method: 'POST'
@@ -26,9 +26,9 @@ export default function useApi() {
     { manual: true }
   )
 
-  const [{ data: jobStatus }, statusCallback] = useAxios<any>(
+  const [{ data: statusRes }, statusCallback] = useAxios<any>(
     {
-      url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${jobId || genJobId}/progress`,
+      url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${jobId}/progress`,
       method: 'GET'
     },
     { manual: true }
@@ -36,7 +36,7 @@ export default function useApi() {
 
   const [{ data: cancelRes }, cancelCallback] = useAxios<any>(
     {
-      url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${jobId || genJobId}/cancel`,
+      url: `${process.env.NEXT_PUBLIC_API_URL}/generate/${jobId}/cancel`,
       method: 'GET'
     },
     { manual: true }
@@ -52,14 +52,14 @@ export default function useApi() {
 
   useEffect(() => {
     if (jobId) return;
-    if (!genJobId && !id) return;
+    if (!generateRes && !id) return;
 
-    if (genJobId) {
-      replace(`/status/${genJobId}`);
+    if (generateRes) {
+      replace(`/status/${generateRes}`);
     }
 
-    setJobId(genJobId || id);
-  }, [genJobId, id])
+    setJobId(generateRes || id);
+  }, [generateRes, id])
 
   const generate = (user: any) => {
     generateCallback({
@@ -76,16 +76,14 @@ export default function useApi() {
 
   useInterval(() => {
     statusCallback();
-  }, jobId && jobStatus?.progress !== 100 ? 2000 : null);
+  }, jobId && statusRes?.progress !== 100 ? 2000 : null);
 
   return {
     searchQuery,
     setSearchQuery,
     users,
     searchUsers,
-    jobId,
-    setJobId,
-    jobStatus,
+    status: statusRes,
     generate,
     cancel,
   };
