@@ -34,4 +34,16 @@ export class AppController {
       progress: generateJob.progress(),
     };
   }
+
+  @Get('generate/:id/cancel')
+  async cancel(@Param() { id }): Promise<any> {
+    const generateJob = await this.generationQue.getJob(id);
+
+    return generateJob.moveToFailed(
+      {
+        message: 'Canceled by user',
+      },
+      false,
+    );
+  }
 }

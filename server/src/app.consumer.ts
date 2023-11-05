@@ -150,6 +150,8 @@ export class AppConsumer {
     }
 
     await job.progress(100);
+
+    job.update({ ...job.data, playlist: createPlaylistSuccess });
   }
 
   @OnQueueActive()
