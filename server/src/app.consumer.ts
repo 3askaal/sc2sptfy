@@ -76,7 +76,7 @@ export class AppConsumer {
     const [createPlaylistErr, createPlaylistSuccess] = await to(
       sdk.playlists.createPlaylist(currentUser.id, {
         name: scUser.username,
-        description: 'Generated with http://sc2sptfy.vercel.app',
+        description: 'Generated with https://sc2sptfy.vercel.app',
         public: false,
       }),
     );
