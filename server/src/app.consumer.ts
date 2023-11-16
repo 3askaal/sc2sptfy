@@ -126,7 +126,7 @@ export class AppConsumer {
             tempMatches.push(match?.uri);
           }
 
-          if (tempMatches.length === 50) {
+          if (tempMatches.length === 50 || index === scItems.length - 1) {
             const [addTrackToPlaylistErr] = await to(
               sdk.playlists.addItemsToPlaylist(
                 createPlaylistSuccess.id,
