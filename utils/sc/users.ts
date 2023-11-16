@@ -11,6 +11,10 @@ export const getUser = async (userName: string) => {
 
   const user = res.find(({ permalink }) => permalink === userName)
 
+  if (!user) {
+    throw new Error(`User not found: ${userName}`);
+  }
+
   return user;
 }
 
