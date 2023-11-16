@@ -4,14 +4,12 @@ import {
   OnQueueCompleted,
   OnQueueActive,
   OnQueueFailed,
-  OnQueueProgress,
 } from '@nestjs/bull';
 import { Job } from 'bull';
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
 import sequential from 'promise-sequential';
 import to from 'await-to-js';
-import { chunk } from 'lodash';
 
 const logMeta = ({ scUser, sptfyUser }) => {
   return `(from: ${scUser?.username || ''} to: ${
@@ -68,12 +66,25 @@ export class AppConsumer {
       sdk.currentUser.profile(),
     );
 
+    const currentUser = getProfileSuccess;
+
     if (getProfileErr) {
       console.error('getProfileErr: ', getProfileErr);
       throw getProfileErr;
     }
 
-    const currentUser = getProfileSuccess;
+    const [createPlaylistErr, createPlaylistSuccess] = await to(
+      sdk.playlists.createPlaylist(currentUser.id, {
+        name: scUser.username,
+        description: 'Generated with http://sc2sptfy.vercel.app',
+        public: false,
+      }),
+    );
+
+    if (createPlaylistErr) {
+      console.error('createPlaylistErr: ', createPlaylistErr);
+      throw createPlaylistErr;
+    }
 
     await job.update({ ...job.data, sptfyUser: currentUser });
 
@@ -90,7 +101,9 @@ export class AppConsumer {
       .filter(({ kind }) => kind === 'track')
       .filter(({ duration }) => Math.floor(duration / 60000) < 20);
 
-    const [mapSpotifyItemsErrors, mapSpotifyItemsSuccess] = await to(
+    let tempMatches: string[] = [];
+
+    const [mapSpotifyItemsErrors] = await to(
       sequential(
         scItems.map((scItem, index: number) => async () => {
           const progress = Math.floor((index / scItems.length) * 95);
@@ -109,6 +122,26 @@ export class AppConsumer {
             lookupIndex++;
           }
 
+          if (match?.uri) {
+            tempMatches.push(match?.uri);
+          }
+
+          if (tempMatches.length === 50) {
+            const [addTrackToPlaylistErr] = await to(
+              sdk.playlists.addItemsToPlaylist(
+                createPlaylistSuccess.id,
+                tempMatches,
+              ),
+            );
+
+            if (addTrackToPlaylistErr) {
+              console.error('addTrackToPlaylistErr: ', addTrackToPlaylistErr);
+              throw addTrackToPlaylistErr;
+            }
+
+            tempMatches = [];
+          }
+
           return match?.uri;
         }),
       ),
@@ -117,44 +150,6 @@ export class AppConsumer {
     if (mapSpotifyItemsErrors) {
       console.error('mapSpotifyItemsErrors: ', mapSpotifyItemsErrors);
       throw mapSpotifyItemsErrors;
-    }
-
-    const trackIds = mapSpotifyItemsSuccess.filter((value) => !!value);
-
-    const [createPlaylistErr, createPlaylistSuccess] = await to(
-      sdk.playlists.createPlaylist(currentUser.id, {
-        name: scUser.username,
-        description: 'Generated with http://sc2sptfy.vercel.app',
-        public: false,
-      }),
-    );
-
-    if (createPlaylistErr) {
-      console.error('createPlaylistErr: ', createPlaylistErr);
-      throw createPlaylistErr;
-    }
-
-    const [addItemsToPlaylistErr] = await to(
-      sequential(
-        chunk(trackIds, 100).map((trackIdChunk) => async () => {
-          const [addChunkToPlaylistErr] = await to(
-            sdk.playlists.addItemsToPlaylist(
-              createPlaylistSuccess.id,
-              trackIdChunk,
-            ),
-          );
-
-          if (addChunkToPlaylistErr) {
-            console.error('addChunkToPlaylistErr: ', addChunkToPlaylistErr);
-            throw addChunkToPlaylistErr;
-          }
-        }),
-      ),
-    );
-
-    if (addItemsToPlaylistErr) {
-      console.error('addItemsToPlaylistErr: ', addItemsToPlaylistErr);
-      throw addItemsToPlaylistErr;
     }
 
     await job.progress(100);

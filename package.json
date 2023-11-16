@@ -25,6 +25,8 @@
     "moment": "^2.29.4",
     "mongoose": "^7.5.3",
     "node-fetch": "^3.3.2",
-    "promise-sequential": "^1.1.1"
+    "promise-sequential": "^1.1.1",
+    "@types/mkdirp": "^2.0.0",
+    "mkdirp": "^3.0.1"
   }
 }
