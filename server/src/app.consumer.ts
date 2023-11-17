@@ -49,6 +49,13 @@ const findMatch = async (sdk: SpotifyApi, scItem: any, searchQuery: string) => {
   return matches.length ? matches[0] : null;
 };
 
+const cleanSearchQuery = (searchQuery: string) => {
+  return searchQuery
+    .replace(/s+\[(.*?)\]/g, '')
+    .replace(/(.*?)\:/g, '')
+    .replace(/\s+\-/g, '');
+};
+
 @Processor('generation')
 export class AppConsumer {
   constructor(private readonly appService: AppService) {}
@@ -101,6 +108,12 @@ export class AppConsumer {
       .filter(({ kind }) => kind === 'track')
       .filter(({ duration }) => Math.floor(duration / 60000) < 20);
 
+    // await job.update({
+    //   ...job.data,
+    //   scItemAmount: scItems.length,
+    //   scItemCurrent: 0,
+    // });
+
     let tempMatches: string[] = [];
 
     const [mapSpotifyItemsErrors] = await to(
@@ -112,6 +125,8 @@ export class AppConsumer {
           const searchQueries = [
             lc(scItem.title),
             `${lc(scItem.user)} ${lc(scItem.title)}`,
+            cleanSearchQuery(lc(scItem.title)),
+            `${lc(scItem.user)} ${cleanSearchQuery(lc(scItem.title))}`,
           ];
 
           let match = null;
@@ -141,6 +156,11 @@ export class AppConsumer {
 
             tempMatches = [];
           }
+
+          // await job.update({
+          //   ...job.data,
+          //   scItemCurrent: index + 1,
+          // });
 
           return match?.uri;
         }),
