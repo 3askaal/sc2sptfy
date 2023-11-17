@@ -16,8 +16,8 @@ export default function Create() {
         <ChevronsRight size={16} color={THEME.colors.primary} />
         <Text s={{ display: 'inline-flex', color: 'sptfy' }}>{ status?.sptfyUser.display_name }</Text>
       </Spacer>
+      { !!status?.scItemCurrent && <p>{ status.scItemCurrent }/{ status.scItemAmount }</p> }
       <Loader progress={status?.progress} />
-
       { isCompleted ? (
         <Box df fdc aic>
           <Link href={`https://open.spotify.com/playlist/${status.playlist.id}`} target='_blank'>
