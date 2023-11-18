@@ -2,6 +2,7 @@ import { Spacer, Text, Button, Box, Link } from '3oilerplate'
 import { Loader } from '@/components/loader'
 import useApi from '@/hooks/useApi'
 import { THEME } from '@/style';
+import { useEffect } from 'react';
 import { ChevronsRight } from 'react-feather';
 
 export default function Create() {
@@ -9,18 +10,22 @@ export default function Create() {
 
   const isCompleted = status?.progress === 100
 
-  return (
+  useEffect(() => {
+    console.log(status);
+  }, [status])
+
+  return !!status && (
     <Spacer size="xl" s={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
       <Spacer size="m" s={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-        <Text s={{ display: 'inline-flex', color: 'sc' }}>{ status?.scUser.username }</Text>
+        <Text s={{ display: 'inline-flex', color: 'sc' }}>{ status?.scUser?.username }</Text>
         <ChevronsRight size={16} color={THEME.colors.primary} />
-        <Text s={{ display: 'inline-flex', color: 'sptfy' }}>{ status?.sptfyUser.display_name }</Text>
+        <Text s={{ display: 'inline-flex', color: 'sptfy' }}>{ status?.sptfyUser?.display_name }</Text>
       </Spacer>
-      { !!status?.scItemCurrent && <p>{ status.scItemCurrent }/{ status.scItemAmount }</p> }
+      { !!status?.scItemCurrent && <p>{ status?.scItemCurrent }/{ status?.scItemAmount }</p> }
       <Loader progress={status?.progress} />
       { isCompleted ? (
         <Box df fdc aic>
-          <Link href={`https://open.spotify.com/playlist/${status.playlist.id}`} target='_blank'>
+          <Link href={`https://open.spotify.com/playlist/${status?.playlist?.id}`} target='_blank'>
             View playlist
           </Link>
         </Box>

@@ -57,13 +57,22 @@ const findMatch = async (sdk: SpotifyApi, scItem: any, searchQuery: string) => {
         },
       };
     })
-    .filter(({ matches }) => matches.title && matches.artists);
+    .filter(
+      ({ matches, artists }) =>
+        matches.title && matches.artists === artists.length,
+    );
 
   const sortedMatches = sortBy(
     matches,
     ['matches.artists', 'matches.title'],
     ['desc', 'desc'],
   );
+
+  if (!sortedMatches.length) {
+    console.log('##### NO MATCH #####');
+    console.log('searchQuery: ', searchQuery);
+    console.log('scItemString: ', scItemString);
+  }
 
   return sortedMatches.length ? sortedMatches[0] : null;
 };
@@ -125,13 +134,16 @@ export class AppConsumer {
 
     const scItems = getFavoritesSuccess
       .filter(({ kind }) => kind === 'track')
-      .filter(({ duration }) => Math.floor(duration / 60000) < 20);
+      .filter(({ duration }) => Math.floor(duration / 60000) < 20)
+      .slice(0, 50);
 
     newData = {
       ...newData,
       sptfyUser: currentUser,
       totalItems: scItems.length,
       currentItem: 0,
+      matchCount: 0,
+      accuracy: 0,
     };
 
     await job.update(newData);
@@ -143,6 +155,10 @@ export class AppConsumer {
         scItems.map((scItem, index: number) => async () => {
           const progress = Math.floor((index / scItems.length) * 95);
           await job.progress(progress);
+
+          console.log('################');
+          console.log('################');
+          console.log('##### ITEM #####');
 
           const searchQueries = [
             lc(scItem.title),
@@ -160,10 +176,11 @@ export class AppConsumer {
           }
 
           if (match?.uri) {
+            console.log('##### MATCH #####');
             tempMatches.push(match?.uri);
           }
 
-          if (tempMatches.length === 50 || index === scItems.length - 1) {
+          if (tempMatches.length === 20 || index === scItems.length - 1) {
             const [addTrackToPlaylistErr] = await to(
               sdk.playlists.addItemsToPlaylist(
                 createPlaylistSuccess.id,
@@ -180,7 +197,7 @@ export class AppConsumer {
           }
 
           const currentItem = index + 1;
-          const matchCount = newData.scItemMatch + (match ? 1 : 0);
+          const matchCount = newData.matchCount + (match ? 1 : 0);
           const accuracy = Math.round((matchCount / currentItem) * 100);
 
           newData = {
