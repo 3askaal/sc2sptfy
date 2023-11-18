@@ -10,6 +10,7 @@ import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
 import sequential from 'promise-sequential';
 import to from 'await-to-js';
+import { sortBy } from 'lodash';
 
 const logMeta = ({ scUser, sptfyUser }) => {
   return `(from: ${scUser?.username || ''} to: ${
@@ -18,6 +19,7 @@ const logMeta = ({ scUser, sptfyUser }) => {
 };
 
 const lc = (value: string) => value.toLowerCase();
+const clean = (value: string) => value.replace(/[^a-zA-Z ]/g, '').trim();
 
 const findMatch = async (sdk: SpotifyApi, scItem: any, searchQuery: string) => {
   const [sptfySearchErr, sptfySearchSuccess] = await to(
@@ -35,18 +37,35 @@ const findMatch = async (sdk: SpotifyApi, scItem: any, searchQuery: string) => {
 
   const scItemString = lc(JSON.stringify(Object.values(scItem)));
 
-  const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
-    const sptfyItemValues = [
-      lc(sptfyItem.name),
-      ...sptfyItem.artists.map(({ name }) => lc(name)),
-    ];
+  const matches = sptfySearchSuccess.tracks.items
+    .map((sptfyItem) => {
+      const titleMatches = sptfyItem.name
+        .split(' ')
+        .map((titleWord) => clean(lc(titleWord)))
+        .filter((titleWord) => !!titleWord)
+        .filter((titleWord) => scItemString.includes(titleWord));
 
-    return sptfyItemValues.every((sptfyItemValue) =>
-      scItemString.includes(sptfyItemValue),
-    );
-  });
+      const artistsMatches = sptfyItem.artists
+        .map(({ name }) => lc(name))
+        .filter((artistName) => scItemString.includes(artistName));
 
-  return matches.length ? matches[0] : null;
+      return {
+        ...sptfyItem,
+        matches: {
+          title: titleMatches.length,
+          artists: artistsMatches.length,
+        },
+      };
+    })
+    .filter(({ matches }) => matches.title && matches.artists);
+
+  const sortedMatches = sortBy(
+    matches,
+    ['matches.artists', 'matches.title'],
+    ['desc', 'desc'],
+  );
+
+  return sortedMatches.length ? sortedMatches[0] : null;
 };
 
 const cleanSearchQuery = (searchQuery: string) => {
@@ -63,6 +82,8 @@ export class AppConsumer {
   @Process()
   async generate(job: Job<any>) {
     const { scUser, accessToken } = job.data;
+
+    let newData = { ...job.data };
 
     const sdk = SpotifyApi.withAccessToken(
       process.env.SPTFY_CLIENT_ID,
@@ -93,8 +114,6 @@ export class AppConsumer {
       throw createPlaylistErr;
     }
 
-    await job.update({ ...job.data, sptfyUser: currentUser });
-
     const [getFavoritesErr, getFavoritesSuccess] = await to(
       this.appService.getFavorites(scUser.id),
     );
@@ -108,11 +127,14 @@ export class AppConsumer {
       .filter(({ kind }) => kind === 'track')
       .filter(({ duration }) => Math.floor(duration / 60000) < 20);
 
-    // await job.update({
-    //   ...job.data,
-    //   scItemAmount: scItems.length,
-    //   scItemCurrent: 0,
-    // });
+    newData = {
+      ...newData,
+      sptfyUser: currentUser,
+      totalItems: scItems.length,
+      currentItem: 0,
+    };
+
+    await job.update(newData);
 
     let tempMatches: string[] = [];
 
@@ -157,10 +179,18 @@ export class AppConsumer {
             tempMatches = [];
           }
 
-          // await job.update({
-          //   ...job.data,
-          //   scItemCurrent: index + 1,
-          // });
+          const currentItem = index + 1;
+          const matchCount = newData.scItemMatch + (match ? 1 : 0);
+          const accuracy = Math.round((matchCount / currentItem) * 100);
+
+          newData = {
+            ...newData,
+            currentItem,
+            matchCount,
+            accuracy,
+          };
+
+          await job.update(newData);
 
           return match?.uri;
         }),
