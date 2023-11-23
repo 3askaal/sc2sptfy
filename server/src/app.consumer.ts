@@ -26,6 +26,8 @@ export class AppConsumer {
   async generate(job: Job<any>) {
     const { scUser, accessToken } = job.data;
 
+    let newData = { ...job.data };
+
     const sdk = SpotifyApi.withAccessToken(
       process.env.SPTFY_CLIENT_ID,
       accessToken,
@@ -88,11 +90,16 @@ export class AppConsumer {
       .filter(({ kind }) => kind === 'track')
       .filter(({ duration }) => Math.floor(duration / 60000) < 20);
 
-    // await job.update({
-    //   ...job.data,
-    //   scItemAmount: scItems.length,
-    //   scItemCurrent: 0,
-    // });
+    newData = {
+      ...newData,
+      sptfyUser: currentUser,
+      totalItems: scItems.length,
+      currentItem: 0,
+      matchCount: 0,
+      accuracy: 0,
+    };
+
+    await job.update(newData);
 
     let tempMatches: string[] = [];
 
@@ -121,10 +128,18 @@ export class AppConsumer {
             tempMatches = [];
           }
 
-          // await job.update({
-          //   ...job.data,
-          //   scItemCurrent: index + 1,
-          // });
+          const currentItem = index + 1;
+          const matchCount = newData.matchCount + (match ? 1 : 0);
+          const accuracy = Math.round((matchCount / currentItem) * 100);
+
+          newData = {
+            ...newData,
+            currentItem,
+            matchCount,
+            accuracy,
+          };
+
+          await job.update(newData);
 
           return match?.uri;
         }),
