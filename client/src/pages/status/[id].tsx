@@ -20,7 +20,7 @@ export default function Create() {
       <Loader progress={status?.progress} />
       { isCompleted ? (
         <Box df fdc aic>
-          <Link href={`https://open.spotify.com/playlist/${status.playlist.id}`} target='_blank'>
+          <Link href={`https://open.spotify.com/playlist/${status.playlistId}`} target='_blank'>
             View playlist
           </Link>
         </Box>
