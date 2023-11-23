@@ -40,10 +40,6 @@ const DynamicWrapper = dynamic(() => Promise.resolve(NonSSRWrapper), {
 })
 
 export default function App({ Component, pageProps }: AppProps) {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('theme: ', mergeTheme(DEFAULT_THEME, THEME));
-  }
-
   return (
     <ThemeProvider theme={mergeTheme(DEFAULT_THEME, THEME)}>
       <DynamicWrapper>
