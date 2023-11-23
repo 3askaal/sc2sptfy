@@ -6,54 +6,16 @@ import {
   OnQueueFailed,
 } from '@nestjs/bull';
 import { Job } from 'bull';
-import { SpotifyApi } from '@spotify/web-api-ts-sdk';
-import { AppService } from './app.service';
-import sequential from 'promise-sequential';
 import to from 'await-to-js';
+import sequential from 'promise-sequential';
+import { Playlist, SpotifyApi } from '@spotify/web-api-ts-sdk';
+import { AppService } from './app.service';
+import { cleanSearchQuery, lc, sptfy } from './app.helpers';
 
 const logMeta = ({ scUser, sptfyUser }) => {
   return `(from: ${scUser?.username || ''} to: ${
     sptfyUser?.display_name || ''
   })`;
-};
-
-const lc = (value: string) => value.toLowerCase();
-
-const findMatch = async (sdk: SpotifyApi, scItem: any, searchQuery: string) => {
-  const [sptfySearchErr, sptfySearchSuccess] = await to(
-    sdk.search(searchQuery, ['track']),
-  );
-
-  if (sptfySearchErr) {
-    console.error('sptfySearchErr: ', sptfySearchErr);
-    throw sptfySearchErr;
-  }
-
-  if (!sptfySearchSuccess.tracks.items.length) {
-    return null;
-  }
-
-  const scItemString = lc(JSON.stringify(Object.values(scItem)));
-
-  const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
-    const sptfyItemValues = [
-      lc(sptfyItem.name),
-      ...sptfyItem.artists.map(({ name }) => lc(name)),
-    ];
-
-    return sptfyItemValues.every((sptfyItemValue) =>
-      scItemString.includes(sptfyItemValue),
-    );
-  });
-
-  return matches.length ? matches[0] : null;
-};
-
-const cleanSearchQuery = (searchQuery: string) => {
-  return searchQuery
-    .replace(/s+\[(.*?)\]/g, '')
-    .replace(/(.*?)\:/g, '')
-    .replace(/\s+\-/g, '');
 };
 
 @Processor('generation')
@@ -80,17 +42,35 @@ export class AppConsumer {
       throw getProfileErr;
     }
 
-    const [createPlaylistErr, createPlaylistSuccess] = await to(
-      sdk.playlists.createPlaylist(currentUser.id, {
-        name: scUser.username,
-        description: 'Generated with https://sc2sptfy.vercel.app',
-        public: false,
-      }),
+    let playlistId = null;
+
+    const isProd = process.env.NODE_ENV === 'production';
+
+    // Creates new playlist in production
+    // Re-uses fixed playlist in development for debugging purpose
+    const [createOrUpdatePlaylistErr, createOrUpdatePlaylistSuccess] = await to(
+      sdk.playlists[isProd ? 'createPlaylist' : 'changePlaylistDetails'](
+        isProd ? currentUser.id : process.env.DEBUG_SPTFY_PLAYLIST_ID,
+        {
+          name: `sc2stpfy - ${scUser.username}`,
+          description: 'Generated with https://sc2sptfy.vercel.app',
+          public: false,
+        },
+      ) as Promise<Playlist | void>,
     );
 
-    if (createPlaylistErr) {
-      console.error('createPlaylistErr: ', createPlaylistErr);
-      throw createPlaylistErr;
+    if (createOrUpdatePlaylistErr) {
+      console.error('createOrUpdatePlaylistErr: ', createOrUpdatePlaylistErr);
+      throw createOrUpdatePlaylistErr;
+    }
+
+    playlistId =
+      (createOrUpdatePlaylistSuccess as any)?.id ||
+      process.env.DEBUG_SPTFY_PLAYLIST_ID;
+
+    // Cleans up playlist used or debugging in development
+    if (!isProd) {
+      await sptfy.removeAllTracksFromPlaylist(sdk, playlistId);
     }
 
     await job.update({ ...job.data, sptfyUser: currentUser });
@@ -122,20 +102,7 @@ export class AppConsumer {
           const progress = Math.floor((index / scItems.length) * 95);
           await job.progress(progress);
 
-          const searchQueries = [
-            lc(scItem.title),
-            `${lc(scItem.user)} ${lc(scItem.title)}`,
-            cleanSearchQuery(lc(scItem.title)),
-            `${lc(scItem.user)} ${cleanSearchQuery(lc(scItem.title))}`,
-          ];
-
-          let match = null;
-          let lookupIndex = 0;
-
-          while (!match && lookupIndex < searchQueries.length) {
-            match = await findMatch(sdk, scItem, searchQueries[lookupIndex]);
-            lookupIndex++;
-          }
+          const match = await sptfy.findTrack(sdk, scItem);
 
           if (match?.uri) {
             tempMatches.push(match?.uri);
@@ -143,10 +110,7 @@ export class AppConsumer {
 
           if (tempMatches.length === 50 || index === scItems.length - 1) {
             const [addTrackToPlaylistErr] = await to(
-              sdk.playlists.addItemsToPlaylist(
-                createPlaylistSuccess.id,
-                tempMatches,
-              ),
+              sdk.playlists.addItemsToPlaylist(playlistId, tempMatches),
             );
 
             if (addTrackToPlaylistErr) {
@@ -174,7 +138,7 @@ export class AppConsumer {
 
     await job.progress(100);
 
-    job.update({ ...job.data, playlist: createPlaylistSuccess });
+    job.update({ ...job.data, playlistId });
   }
 
   @OnQueueActive()
