@@ -17,9 +17,15 @@ export default function Create() {
           <ChevronsRight size={16} color={THEME.colors.primary} />
           <Text s={{ display: 'inline-flex', color: 'sptfy' }}>{ status?.sptfyUser.display_name }</Text>
         </Spacer>
-        <Spacer size="xs" s={{ color: THEME.colors.primary, justifyContent: 'center', alignItems: 'center' }}>
-          <Text s={{ fontSize: 'xs' }}>Progress: { status?.currentItem } / { status?.totalItems }</Text>
-          <Text s={{ fontSize: 'xs' }}>Accuracy: { status?.accuracy }%</Text>
+        <Spacer s={{ flexDirection: 'row', fontSize: 's', color: 'primary', justifyContent: 'center', alignItems: 'center' }}>
+          <Spacer size="xs" s={{ width: 'auto', flexDirection: 'row' }}>
+            <Text s={{ color: 'greys.60' }}>Progress:</Text>
+            <Text s={{ color: 'white' }}>{ status?.currentItem || 0 } / { status?.totalItems || 0}</Text>
+          </Spacer>
+          <Spacer size="xs" s={{ width: 'auto', flexDirection: 'row' }}>
+            <Text s={{ color: 'greys.60' }}>Matches:</Text>
+            <Text s={{ color: 'sptfy' }}>{ status?.matchCount || 0 } ({ status?.accuracy }%)</Text>
+          </Spacer>
         </Spacer>
       </Spacer>
       <Loader progress={status?.progress} />
