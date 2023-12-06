@@ -27,6 +27,7 @@ export const THEME = {
   colors: {
     black,
     white,
+    greys: colors.greys,
     primary: colors.greys['60'],
     primaryDark: darken(PRIMARY, .5),
     primaryLight: brighten(PRIMARY, 1),

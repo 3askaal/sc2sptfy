@@ -10,7 +10,7 @@ import to from 'await-to-js';
 import sequential from 'promise-sequential';
 import { Playlist, SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
-import { cleanSearchQuery, lc, sptfy } from './app.helpers';
+import { sptfy } from './app.helpers';
 
 const logMeta = ({ scUser, sptfyUser }) => {
   return `(from: ${scUser?.username || ''} to: ${
@@ -54,7 +54,7 @@ export class AppConsumer {
       sdk.playlists[isProd ? 'createPlaylist' : 'changePlaylistDetails'](
         isProd ? currentUser.id : process.env.DEBUG_SPTFY_PLAYLIST_ID,
         {
-          name: `sc2stpfy - ${scUser.username}`,
+          name: `sc2sptfy - ${scUser.username}`,
           description: 'Generated with https://sc2sptfy.vercel.app',
           public: false,
         },
@@ -70,7 +70,7 @@ export class AppConsumer {
       (createOrUpdatePlaylistSuccess as any)?.id ||
       process.env.DEBUG_SPTFY_PLAYLIST_ID;
 
-    // Cleans up playlist used or debugging in development
+    // Cleans up playlist used for debugging in development
     if (!isProd) {
       await sptfy.removeAllTracksFromPlaylist(sdk, playlistId);
     }
