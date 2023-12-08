@@ -75,8 +75,6 @@ export class AppConsumer {
       await sptfy.removeAllTracksFromPlaylist(sdk, playlistId);
     }
 
-    await job.update({ ...job.data, sptfyUser: currentUser });
-
     const [getFavoritesErr, getFavoritesSuccess] = await to(
       this.appService.getFavorites(scUser.id),
     );
