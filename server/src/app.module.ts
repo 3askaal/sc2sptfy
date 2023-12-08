@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { CacheModule } from '@nestjs/cache-manager';
+import { MongooseModule } from '@nestjs/mongoose';
 import { BullModule } from '@nestjs/bull';
 import { ConfigModule } from '@nestjs/config';
+import { URL } from 'url';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
 import { AppConsumer } from './app.consumer';
-import { URL } from 'url';
+import { Generation, GenerationSchema } from './app.schema';
+import { CONFIG, NEST_CONFIG } from '../config';
 
 const redisConfig = () => {
   if (process.env.NODE_ENV === 'production') {
@@ -23,18 +26,25 @@ const redisConfig = () => {
   return {
     host: 'localhost',
     port: 6379,
+    showFriendlyErrorStack: true,
   };
 };
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      load: [NEST_CONFIG],
+    }),
     BullModule.forRoot({
       redis: redisConfig(),
     }),
     BullModule.registerQueue({
       name: 'generation',
     }),
+    MongooseModule.forRoot(CONFIG.MONGODB_URI),
+    MongooseModule.forFeature([
+      { name: Generation.name, schema: GenerationSchema },
+    ]),
     HttpModule,
     CacheModule.register(),
   ],

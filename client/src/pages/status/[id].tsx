@@ -13,9 +13,13 @@ export default function Create() {
     <Spacer size="xl" s={{ height: '100%', alignItems: 'center', justifyContent: 'center' }}>
       <Spacer size="m" s={{ justifyContent: 'center', alignItems: 'center' }}>
         <Spacer size="s" s={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-          <Text s={{ display: 'inline-flex', color: 'sc' }}>{ status?.scUser.username }</Text>
+          <Link href={`https://soundcloud.com/${status?.scUser?.id}`}>
+            <Text s={{ display: 'inline-flex', color: 'sc' }}>{ status?.scUser?.username }</Text>
+          </Link>
           <ChevronsRight size={16} color={THEME.colors.primary} />
-          <Text s={{ display: 'inline-flex', color: 'sptfy' }}>{ status?.sptfyUser.display_name }</Text>
+          <Link href={`https://open.spotify.com/user/${status?.sptfyUser?.id}`}>
+            <Text s={{ display: 'inline-flex', color: 'sptfy' }}>{ status?.sptfyUser?.display_name }</Text>
+          </Link>
         </Spacer>
         <Spacer s={{ flexDirection: 'row', fontSize: 's', color: 'primary', justifyContent: 'center', alignItems: 'center' }}>
           <Spacer size="xs" s={{ width: 'auto', flexDirection: 'row' }}>
