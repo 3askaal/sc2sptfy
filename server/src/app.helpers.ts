@@ -79,12 +79,12 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
 
     const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
       const sptfyItemValues = [
-        lc(sptfyItem.name),
-        ...sptfyItem.artists.map(({ name }) => lc(name)),
+        sptfyItem.name,
+        ...sptfyItem.artists.map(({ name }) => name),
       ];
 
       return sptfyItemValues.every((sptfyItemValue) =>
-        scItemString.includes(sptfyItemValue),
+        scItemString.includes(lc(sptfyItemValue)),
       );
     });
 
