@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import useAxios from 'axios-hooks';
 import { useDebounce, useInterval } from 'usehooks-ts';
+import useAxios from 'axios-hooks';
 import useSpotify from './useSpotify';
 
 export default function useApi() {
