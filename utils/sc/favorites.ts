@@ -9,13 +9,15 @@ const getFavoritesBy = async (userId: string, type: string) => {
   const likes: any = [];
 
   while (href) {
-    const [err, success] = await request(href);
+    const [getFavoritesByErr, getFavoritesBySuccess] = await request(href);
 
-    if (err) {
-      throw err;
+    if (getFavoritesByErr) {
+      console.log('getFavoritesByErr: ', getFavoritesByErr);
+      href = '';
+      return;
     }
 
-    const res = await success.json() as any;
+    const res = await getFavoritesBySuccess.json() as any;
 
     href = res.next_href && res.next_href.split('https://api.soundcloud.com/')[1];
 
