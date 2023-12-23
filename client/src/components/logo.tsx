@@ -1,4 +1,4 @@
-import { s, Title, darken } from '3oilerplate'
+import { s, Title } from '3oilerplate'
 
 const SLogoSc = s.div(({ theme, color }: any) => ({
   display: 'inline-flex',
