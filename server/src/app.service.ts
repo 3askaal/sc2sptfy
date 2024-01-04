@@ -5,6 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import promiseSequential from 'promise-sequential';
+import { IScRes, IScUser, IScFavorite, IUser, IFavorite } from './types';
 
 @Injectable()
 export class AppService {
@@ -13,27 +14,27 @@ export class AppService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async searchUsers(searchQuery: string): Promise<any> {
-    const data = await this.get(`users?q=${searchQuery}`);
+  async searchUsers(searchQuery: string): Promise<IUser[]> {
+    const data: IScUser[] = await this.get(`users?q=${searchQuery}`);
 
     return data.map(({ id, username, avatar_url }) => ({
       id,
       username,
-      avatar_url,
+      avatar: avatar_url,
     }));
   }
 
-  async getFavorites(userId: string): Promise<any> {
+  async getFavorites(userId: string): Promise<IFavorite[]> {
     const limit = 1000;
 
-    const favorites = await promiseSequential(
+    const favorites: IScFavorite[] = await promiseSequential(
       ['tracks', 'playlists'].map((type) => async () => {
         const items = [];
 
         let path = `users/${userId}/likes/${type}?linked_partitioning=true&limit=${limit}`;
 
         while (path) {
-          const data = await this.get(path);
+          const data: IScRes<IScFavorite> = await this.get(path);
 
           path = data.next_href?.split('https://api.soundcloud.com/')[1];
 
@@ -70,29 +71,6 @@ export class AppService {
         .pipe(
           catchError((error: AxiosError) => {
             console.error('get: ', error);
-            throw error;
-          }),
-        ),
-    );
-
-    return data;
-  }
-
-  async post(path: string, payload: any): Promise<any> {
-    const accessToken: string =
-      (await this.cacheManager.get('accessToken')) ||
-      (await this.authenticate());
-
-    const { data } = await firstValueFrom(
-      this.httpService
-        .post(`${process.env.SC_BASE_URL}/${path}`, payload, {
-          headers: {
-            Authorization: `OAuth ${accessToken}`,
-          },
-        })
-        .pipe(
-          catchError((error: AxiosError) => {
-            console.error('post: ', error);
             throw error;
           }),
         ),
