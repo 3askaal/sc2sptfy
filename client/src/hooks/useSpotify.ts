@@ -6,7 +6,6 @@ import to from 'await-to-js';
 
 export default function useSpotify() {
   const { query: { code }, replace } = useRouter();
-
   const [sdk, setSdk] = useState<SpotifyApi | null>(null);
   const [accessToken, setAccessToken] = useLocalStorage<AccessToken | null>('accessToken', null)
 
@@ -44,7 +43,7 @@ export default function useSpotify() {
     if (authSuccess?.authenticated) {
       setAccessToken(authSuccess.accessToken)
       setSdk(() => internalSdk);
-      replace('/create')
+      replace('/who')
     }
   }
 
