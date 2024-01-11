@@ -3,21 +3,21 @@ import { getUser } from "./users";
 
 const limit = 1000;
 
-const getFavoritesBy = async (userId: string, type: string) => {
+const getLikesBy = async (userId: string, type: string) => {
   let href = `users/${userId}/likes/${type}?linked_partitioning=true&limit=${limit}`;
 
   const likes: any = [];
 
   while (href) {
-    const [getFavoritesByErr, getFavoritesBySuccess] = await request(href);
+    const [getLikesByErr, getLikesBySuccess] = await request(href);
 
-    if (getFavoritesByErr) {
-      console.log('getFavoritesByErr: ', getFavoritesByErr);
+    if (getLikesByErr) {
+      console.log('getLikesByErr: ', getLikesByErr);
       href = '';
       return;
     }
 
-    const res = await getFavoritesBySuccess.json() as any;
+    const res = await getLikesBySuccess.json() as any;
 
     href = res.next_href && res.next_href.split('https://api.soundcloud.com/')[1];
 
@@ -27,13 +27,13 @@ const getFavoritesBy = async (userId: string, type: string) => {
   return likes;
 }
 
-export const getFavorites = async (permalink: string) => {
+export const getLikes = async (permalink: string) => {
   const profile = await getUser(permalink);
 
   let favorites: any = [];
 
-  const tracks = await getFavoritesBy(profile.id, 'tracks')
-  const playlists = await getFavoritesBy(profile.id, 'playlists')
+  const tracks = await getLikesBy(profile.id, 'tracks')
+  const playlists = await getLikesBy(profile.id, 'playlists')
 
   favorites = [...favorites, ...tracks]
   favorites = [...favorites, ...playlists]

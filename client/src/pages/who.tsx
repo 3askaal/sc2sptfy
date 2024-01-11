@@ -1,11 +1,18 @@
 import { Spacer, Input, List, ListItem, Box, Button } from '3oilerplate'
 import useApi from '@/hooks/useApi'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import { useLocalStorage } from 'usehooks-ts';
 
-export default function Create() {
-  const { users, setSearchQuery, generate } = useApi()
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+export default function Who() {
+  const { push } = useRouter();
+  const { users, setSearchQuery } = useApi()
+  const [selectedUser, setSelectedUser] = useLocalStorage<any>('selectedUser', null);
+
+  useEffect(() => {
+    setSelectedUser(null);
+  }, [])
 
   const onSearch = (searchQuery: string) => {
     setSearchQuery(searchQuery);
@@ -47,7 +54,7 @@ export default function Create() {
         </Box>
       )}
       { selectedUser && (
-        <Button onClick={() => generate(selectedUser)}>Generate</Button>
+        <Button onClick={() => push('what')}>Select</Button>
       ) }
     </Spacer>
   )

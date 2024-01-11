@@ -21,8 +21,13 @@ export class AppController {
     return this.appService.searchUsers(params.query);
   }
 
+  @Get('user/:id/collect')
+  async getUser(@Param() params): Promise<any> {
+    return this.appService.getUserData(params.id);
+  }
+
   @Post('generate')
-  async generate(@Body() { user, accessToken }): Promise<any> {
+  async generate(@Body() { user, selection, accessToken }): Promise<any> {
     const sdk = SpotifyApi.withAccessToken(
       process.env.SPTFY_CLIENT_ID,
       accessToken,
@@ -30,6 +35,7 @@ export class AppController {
 
     const generateJob = await this.generationQue.add({
       scUser: user,
+      selection,
       accessToken,
     });
 

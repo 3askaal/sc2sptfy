@@ -61,10 +61,11 @@ export default function useApi() {
     setJobId(generateRes || id);
   }, [generateRes, id])
 
-  const generate = (user: any) => {
+  const generate = (user: any, selection: any) => {
     generateCallback({
       data: {
         user,
+        selection,
         accessToken
       }
     })
@@ -85,6 +86,6 @@ export default function useApi() {
     searchUsers,
     status: statusRes,
     generate,
-    cancel,
+    cancel
   };
 }
