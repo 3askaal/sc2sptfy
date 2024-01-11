@@ -11,6 +11,7 @@ import sequential from 'promise-sequential';
 import { Playlist, SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
 import { sptfy } from './app.helpers';
+import { flatten } from 'lodash';
 
 const logMeta = ({ scUser, sptfyUser }) => {
   return `(from: ${scUser?.username || ''} to: ${
@@ -24,7 +25,7 @@ export class AppConsumer {
 
   @Process()
   async generate(job: Job<any>) {
-    const { scUser, accessToken } = job.data;
+    const { scUser, selection, accessToken } = job.data;
 
     let newData = { ...job.data };
 
@@ -75,18 +76,49 @@ export class AppConsumer {
       await sptfy.removeAllTracksFromPlaylist(sdk, playlistId);
     }
 
-    const [getFavoritesErr, getFavoritesSuccess] = await to(
-      this.appService.getFavorites(scUser.id),
-    );
+    const scItems = [];
 
-    if (getFavoritesErr) {
-      console.error('getFavoritesErr: ', getFavoritesErr);
-      throw getFavoritesErr;
+    if (selection.tracks) {
+      const [getTracksError, getTracksSuccess] = await to(
+        this.appService.getTracks(scUser.id),
+      );
+
+      if (getTracksError) {
+        console.error('getTracksError: ', getTracksError);
+        throw getTracksError;
+      }
+
+      scItems.push(...getTracksSuccess);
     }
 
-    const scItems = getFavoritesSuccess
-      .filter(({ kind }) => kind === 'track')
-      .filter(({ duration }) => Math.floor(duration / 60000) < 20);
+    if (Object.values(selection.playlists).some((value) => value)) {
+      const [getPlaylistItemsError, getPlaylistItemsSuccess] = await to(
+        this.appService.getSelectedPlaylistItems(
+          scUser.id,
+          selection.playlists,
+        ),
+      );
+
+      if (getPlaylistItemsError) {
+        console.error('getPlaylistItemsError: ', getPlaylistItemsError);
+        throw getPlaylistItemsError;
+      }
+
+      scItems.push(...getPlaylistItemsSuccess);
+    }
+
+    if (selection.likes) {
+      const [getLikesErr, getLikesSuccess] = await to(
+        this.appService.getLikes(scUser.id),
+      );
+
+      if (getLikesErr) {
+        console.error('getLikesErr: ', getLikesErr);
+        throw getLikesErr;
+      }
+
+      scItems.push(...getLikesSuccess);
+    }
 
     newData = {
       ...newData,
