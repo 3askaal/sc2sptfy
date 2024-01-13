@@ -111,11 +111,11 @@ export class AppService {
         while (path) {
           const data: IScRes<IScItem> = await this.get(path);
 
-          if (paginate) {
-            path = data.next_href?.split('https://api.soundcloud.com/')[1];
-          }
-
           items.push(...data.collection);
+
+          path = paginate
+            ? data.next_href?.split('https://api.soundcloud.com/')[1]
+            : null;
         }
 
         return items;
