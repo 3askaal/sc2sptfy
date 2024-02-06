@@ -31,6 +31,7 @@
     "@spotify/web-api-ts-sdk": "^1.1.2",
     "@types/lodash": "^4.14.199",
     "@types/promise-sequential": "^1.1.0",
+    "@types/similarity": "^1.2.3",
     "await-to-js": "^3.0.0",
     "axios": "^1.5.1",
     "bull": "^4.11.3",
@@ -40,7 +41,8 @@
     "mongoose": "^8.0.3",
     "promise-sequential": "^1.1.1",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "similarity": "^1.2.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

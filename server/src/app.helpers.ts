@@ -1,5 +1,7 @@
 import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import to from 'await-to-js';
+import { maxBy } from 'lodash';
+import similarity from 'similarity';
 
 export const cleanSearchQuery = (searchQuery: string) => {
   return (
@@ -9,7 +11,7 @@ export const cleanSearchQuery = (searchQuery: string) => {
       // remove '...: '
       .replace(/(.*?)\:\s/g, '')
       // remove ' - '
-      .replace(/\s\-\s/g, '')
+      .replace(/\s\-\s/g, ' s')
       // remove unecessary whitespace
       .replace(/\s{2,}/g, ' ')
       // remove starting and ending whitespace
@@ -79,21 +81,35 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
       return null;
     }
 
-    const scItemString = lc(JSON.stringify(Object.values(scItem)));
+    // const scItemString = [scItem.title, scItem.user].join(' ');
 
-    const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
-      const sptfyItemValues = [
+    const rankedResults = sptfySearchSuccess.tracks.items.map((sptfyItem) => {
+      const sptfyItemStr = [
         sptfyItem.name,
         ...sptfyItem.artists.map(({ name }) => name),
-      ];
+      ].join(' ');
 
-      return sptfyItemValues.every((sptfyItemValue) =>
-        scItemString.includes(lc(sptfyItemValue)),
-      );
+      const similar = similarity(sptfyItemStr, searchQuery, {
+        sensitive: false,
+      });
+
+      console.log('sptfy: ', sptfyItemStr);
+      console.log('sc: ', searchQuery);
+      console.log('match: ', similar);
+      console.log('#######################');
+      console.log('#######################');
+      console.log('#######################');
+
+      return {
+        ...sptfyItem,
+        similarity: similar,
+      };
     });
 
-    if (matches.length) {
-      match = matches[0];
+    const potentialMatch = maxBy(rankedResults, 'similar');
+
+    if (potentialMatch.similarity > 0.75) {
+      match = potentialMatch;
     }
 
     lookupIndex++;
