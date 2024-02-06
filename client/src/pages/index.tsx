@@ -6,7 +6,7 @@ export default function Home() {
     <Spacer size="xl" s={{ alignItems: 'center', justifyContent: 'center' }}>
       <Spacer s={{ alignItems: 'center', justifyContent: 'center' }}>
         <Logo />
-        <Text s={{ textAlign: 'center' }}>Transfer your Soundcloud likes to a Spotify playlist</Text>
+        <Text s={{ textAlign: 'center' }}>Transfer your Soundcloud data to Spotify</Text>
       </Spacer>
       <Login />
     </Spacer>
