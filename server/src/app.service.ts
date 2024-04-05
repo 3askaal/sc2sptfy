@@ -5,7 +5,9 @@ import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
 import promiseSequential from 'promise-sequential';
-import { IScRes, IScUser, IScFavorite, IUser, IFavorite } from './types';
+import { IScRes, IScUser, IScItem, IUser, IItem } from './types';
+import to from 'await-to-js';
+import { flatten } from 'lodash';
 
 @Injectable()
 export class AppService {
@@ -20,23 +22,98 @@ export class AppService {
     return data.map(({ id, username, avatar_url }) => ({
       id,
       username,
-      avatar: avatar_url,
+      avatar_url,
     }));
   }
 
-  async getFavorites(userId: string): Promise<IFavorite[]> {
-    const limit = 1000;
+  async getUserData(userId: string): Promise<any> {
+    const [getLikesError, getLikesSuccess] = await to(this.getLikes(userId));
 
-    const favorites: IScFavorite[] = await promiseSequential(
+    if (getLikesError) {
+      throw getLikesError;
+    }
+    const [getPlaylistsError, getPlaylistsSuccess] = await to(
+      this.getPlaylists(userId),
+    );
+
+    if (getPlaylistsError) {
+      throw getPlaylistsError;
+    }
+    const [getTracksError, getTracksSuccess] = await to(this.getTracks(userId));
+
+    if (getTracksError) {
+      throw getTracksError;
+    }
+
+    return {
+      likes: getLikesSuccess,
+      playlists: getPlaylistsSuccess,
+      tracks: getTracksSuccess,
+    };
+  }
+
+  formatItems(items: IScItem[]): IItem[] {
+    return items
+      .filter(({ kind }) => kind === 'track')
+      .filter(({ duration }) => Math.floor(duration / 60000) < 20)
+      .map(({ kind, title, genre, user, duration, artwork_url }) => ({
+        kind,
+        title,
+        duration,
+        ...(genre && {
+          genre,
+        }),
+        user: user.username,
+        artwork_url,
+      }));
+  }
+
+  async getPlaylists(userId: string): Promise<any[]> {
+    return this.get(`users/${userId}/playlists`);
+  }
+
+  async getSelectedPlaylistItems(userId: string, playlistSelection: any) {
+    const [getPlaylistsError, getPlaylistsSuccess] = await to(
+      this.getPlaylists(userId),
+    );
+
+    if (getPlaylistsError) {
+      console.error('getPlaylistsError: ', getPlaylistsError);
+      throw getPlaylistsError;
+    }
+
+    return this.formatItems(
+      flatten(
+        getPlaylistsSuccess
+          .filter(({ id }) => playlistSelection[id])
+          .map(({ tracks }) => tracks),
+      ),
+    );
+  }
+
+  async getTracks(userId: string): Promise<IItem[]> {
+    const tracks = await this.get(`users/${userId}/tracks`);
+
+    return this.formatItems(tracks);
+  }
+
+  async getLikes(
+    userId: string,
+    limit = 1000,
+    paginate = true,
+  ): Promise<IItem[]> {
+    const likes: IScItem[] = await promiseSequential(
       ['tracks', 'playlists'].map((type) => async () => {
         const items = [];
 
         let path = `users/${userId}/likes/${type}?linked_partitioning=true&limit=${limit}`;
 
         while (path) {
-          const data: IScRes<IScFavorite> = await this.get(path);
+          const data: IScRes<IScItem> = await this.get(path);
 
-          path = data.next_href?.split('https://api.soundcloud.com/')[1];
+          if (paginate) {
+            path = data.next_href?.split('https://api.soundcloud.com/')[1];
+          }
 
           items.push(...data.collection);
         }
@@ -45,15 +122,7 @@ export class AppService {
       }),
     );
 
-    return favorites.map(({ kind, title, genre, user, duration }) => ({
-      kind,
-      title,
-      duration,
-      ...(genre && {
-        genre,
-      }),
-      user: user.username,
-    }));
+    return this.formatItems(likes);
   }
 
   async get(path: string): Promise<any> {

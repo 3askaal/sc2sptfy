@@ -23,7 +23,7 @@ export interface IScUser {
   last_modified: string;
 }
 
-export interface IScFavorite {
+export interface IScItem {
   id: number;
   uri: string;
   kind: 'track' | 'playlist';
@@ -38,6 +38,7 @@ export interface IScFavorite {
   release_day: null;
   label_name: string;
   user: IScUser;
+  artwork_url: string;
   permalink_url: string;
   playback_count: number;
   favoritings_count: number;

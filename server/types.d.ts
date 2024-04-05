@@ -1,4 +1,4 @@
-export interface IScFavorite {
+export interface IScItem {
   kind: string;
   title: string;
   genre?: string;
@@ -8,7 +8,7 @@ export interface IScFavorite {
   };
 }
 
-export interface IFavorite {
+export interface IItem {
   kind: string;
   title: string;
   genre?: string;
