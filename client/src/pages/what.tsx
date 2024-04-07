@@ -44,8 +44,8 @@ export default function Create() {
   const someSelected = selection.tracks || selection.likes || Object.values(selection.playlists).some((value) => value);
 
   return (
-    <Spacer size="m" s={{ justifyContent: 'center', width: '100%' }}>
-      <Box s={{ width: '100%', overflowY: 'auto', maxHeight: '80%' }}>
+    <Spacer size="m" s={{ pt: 'xl', justifyContent: 'space-between' }}>
+      <Box s={{ overflowY: 'auto' }}>
         <Spacer size="m" s={{ justifyContent: 'center', width: '100%' }}>
 
           { !!userDetail?.tracks.length && (
@@ -74,7 +74,10 @@ export default function Create() {
                     </Box>
                   )) }
                 </Box>
-                <Text>Tracks</Text>
+                <Spacer size="xs" s={{ width: 'auto', flexDirection: 'row' }}>
+                  <Text>Tracks</Text>
+                  <Text s={{ color: 'greys.60' }}>({ userDetail?.tracks.length })</Text>
+                </Spacer>
               </Spacer>
             </label>
           )}
@@ -105,7 +108,10 @@ export default function Create() {
                     </Box>
                   )) }
                 </Box>
-                <Text>Likes</Text>
+                <Spacer size="xs" s={{ width: 'auto', flexDirection: 'row' }}>
+                  <Text>Likes</Text>
+                  <Text s={{ color: 'greys.60' }}>({ userDetail?.likes.length })</Text>
+                </Spacer>
               </Spacer>
             </label>
           )}
@@ -136,7 +142,10 @@ export default function Create() {
                     </Box>
                   )) }
                 </Box>
-                <Text>{ title }</Text>
+                <Spacer size="xs" s={{ width: 'auto', flexDirection: 'row' }}>
+                  <Text>{ title }</Text>
+                  <Text s={{ color: 'greys.60' }}>({ tracks.length })</Text>
+                </Spacer>
               </Spacer>
             </label>
           )) }
@@ -145,9 +154,7 @@ export default function Create() {
         </Spacer>
       </Box>
 
-      { someSelected && (
-        <Button onClick={() => generate(selectedUser, selection)}>Generate</Button>
-      ) }
+      <Button s={{ visibility: !someSelected && 'hidden' }} onClick={() => generate(selectedUser, selection)}>Generate</Button>
     </Spacer>
   )
 }
