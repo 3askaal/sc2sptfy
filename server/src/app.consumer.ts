@@ -93,7 +93,7 @@ export class AppConsumer {
 
     if (Object.values(selection.playlists).some((value) => value)) {
       const [getPlaylistItemsError, getPlaylistItemsSuccess] = await to(
-        this.appService.getSelectedPlaylistItems(
+        this.appService.getSelectedPlaylistTracks(
           scUser.id,
           selection.playlists,
         ),

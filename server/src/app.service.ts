@@ -72,7 +72,7 @@ export class AppService {
     return this.get(`users/${userId}/playlists`);
   }
 
-  async getSelectedPlaylistItems(userId: string, playlistSelection: any) {
+  async getSelectedPlaylistTracks(userId: string, playlistSelection: any) {
     const [getPlaylistsError, getPlaylistsSuccess] = await to(
       this.getPlaylists(userId),
     );

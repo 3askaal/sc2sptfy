@@ -5,11 +5,15 @@ export const cleanSearchQuery = (searchQuery: string) => {
   return (
     searchQuery
       // remove '[...]'
-      .replace(/s+\[(.*?)\]/g, '')
-      // remove '...:'
-      .replace(/(.*?)\:/g, '')
-      // remove '-'
-      .replace(/\-/g, '')
+      .replace(/\[(.*?)\]/g, '')
+      // remove '...: '
+      .replace(/(.*?)\:\s/g, '')
+      // remove ' - '
+      .replace(/\s\-\s/g, '')
+      // remove unecessary whitespace
+      .replace(/\s{2,}/g, ' ')
+      // remove starting and ending whitespace
+      .trim()
   );
 };
 
@@ -79,8 +83,8 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
 
     const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
       const sptfyItemValues = [
-        sptfyItem.name,
-        ...sptfyItem.artists.map(({ name }) => name),
+        ...sptfyItem.name.split(' '),
+        ...sptfyItem.artists.map(({ name }) => name.split(' ')).flat(),
       ];
 
       return sptfyItemValues.every((sptfyItemValue) =>
@@ -90,6 +94,8 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
 
     if (matches.length) {
       match = matches[0];
+    } else {
+      console.log(searchQuery);
     }
 
     lookupIndex++;
