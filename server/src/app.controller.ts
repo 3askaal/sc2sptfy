@@ -33,11 +33,23 @@ export class AppController {
       accessToken,
     );
 
-    const generateJob = await this.generationQue.add({
-      scUser: user,
-      selection,
-      accessToken,
-    });
+    const [addJobError, addJobSuccess] = await to(
+      this.generationQue.add(
+        {
+          scUser: user,
+          selection,
+          accessToken,
+        },
+        {
+          jobId: accessToken.access_token,
+        },
+      ),
+    );
+
+    if (addJobError) {
+      console.error('addJobError: ', addJobError);
+      throw addJobError;
+    }
 
     const [getProfileErr, getProfileSuccess] = await to(
       sdk.currentUser.profile(),
@@ -51,7 +63,7 @@ export class AppController {
     const generationItem = await this.generationModel.create({
       scUser: String(user.id),
       sptfyUser: String(getProfileSuccess.id),
-      jobId: generateJob.id,
+      jobId: addJobSuccess.id,
     });
 
     return generationItem._id;
