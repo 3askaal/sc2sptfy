@@ -94,8 +94,6 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
 
     if (matches.length) {
       match = matches[0];
-    } else {
-      console.log(searchQuery);
     }
 
     lookupIndex++;
