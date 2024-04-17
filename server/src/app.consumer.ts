@@ -11,7 +11,6 @@ import sequential from 'promise-sequential';
 import { Playlist, SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
 import { sptfy } from './app.helpers';
-import { flatten } from 'lodash';
 
 const logMeta = ({ scUser, sptfyUser }) => {
   return `(from: ${scUser?.username || ''} to: ${
