@@ -57,10 +57,10 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
   let lookupIndex = 0;
 
   const searchQueries = [
-    lc(scItem.title),
-    `${lc(scItem.user)} ${lc(scItem.title)}`,
     cleanSearchQuery(lc(scItem.title)),
     `${lc(scItem.user)} ${cleanSearchQuery(lc(scItem.title))}`,
+    lc(scItem.title),
+    `${lc(scItem.user)} ${lc(scItem.title)}`,
   ];
 
   while (!match && lookupIndex < searchQueries.length) {
@@ -83,8 +83,8 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
 
     const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
       const sptfyItemValues = [
-        ...sptfyItem.name.split(' '),
-        ...sptfyItem.artists.map(({ name }) => name.split(' ')).flat(),
+        sptfyItem.name,
+        ...sptfyItem.artists.map(({ name }) => name),
       ];
 
       return sptfyItemValues.every((sptfyItemValue) =>
