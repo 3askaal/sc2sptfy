@@ -1,7 +1,6 @@
-import dotenvJSON from 'complex-dotenv-json';
-dotenvJSON({ path: "./env.json"});
+import ENV from './env'
 
 export const CONFIG: any = {
-  SC: JSON.parse(process.env.SC || ''),
-  SPTFY: JSON.parse(process.env.SPTFY || ''),
+  SC: ENV.SC || '',
+  SPTFY: ENV.SPTFY || '',
 }
