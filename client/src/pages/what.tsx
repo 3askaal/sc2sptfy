@@ -2,13 +2,12 @@ import { Spacer, Text, Box, Button, Checkbox } from '3oilerplate'
 import useApi from '@/hooks/useApi'
 import useAxios from 'axios-hooks';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react'
 import { useLocalStorage } from 'usehooks-ts';
 
-export default function Create() {
+export default function What() {
   const { generate } = useApi()
-  const [selectedUser, setSelectedUser] = useLocalStorage<any>('selectedUser', null);
+  const [selectedUser] = useLocalStorage<any>('selectedUser', null);
   const [selection, setSelection] = useState<any>({
     tracks: false,
     likes: false,

@@ -4,7 +4,7 @@ import useApi from '@/hooks/useApi'
 import { THEME } from '@/style';
 import { ChevronsRight } from 'react-feather';
 
-export default function Create() {
+export default function Who() {
   const { status, cancel } = useApi()
 
   const isCompleted = status?.progress === 100
