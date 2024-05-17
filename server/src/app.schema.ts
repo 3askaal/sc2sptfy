@@ -7,7 +7,7 @@ export type GenerationDocument = HydratedDocument<Generation>;
 export class Generation {
   @Prop() scUser: number;
   @Prop() sptfyUser: string;
-  @Prop() jobId: number;
+  @Prop() jobId: string;
 }
 
 export const GenerationSchema = SchemaFactory.createForClass(Generation);
