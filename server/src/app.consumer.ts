@@ -11,6 +11,9 @@ import sequential from 'promise-sequential';
 import { Playlist, SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
 import { sptfy } from './app.helpers';
+import { InjectModel } from '@nestjs/mongoose';
+import { Generation } from './app.schema';
+import { Model } from 'mongoose';
 
 const logMeta = ({ scUser, sptfyUser }) => {
   return `(from: ${scUser?.username || ''} to: ${
@@ -20,11 +23,19 @@ const logMeta = ({ scUser, sptfyUser }) => {
 
 @Processor('generation')
 export class AppConsumer {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    @InjectModel(Generation.name) private generationModel: Model<Generation>,
+  ) {}
 
   @Process()
   async generate(job: Job<any>) {
-    const { scUser, selection, accessToken } = job.data;
+    const { scUser, sptfyUser, selection, accessToken, docId } = job.data;
+
+    await this.generationModel.findByIdAndUpdate(docId, {
+      status: 'active',
+      jobId: job.id,
+    });
 
     let newData = { ...job.data };
 
@@ -32,17 +43,6 @@ export class AppConsumer {
       process.env.SPTFY_CLIENT_ID,
       accessToken,
     );
-
-    const [getProfileErr, getProfileSuccess] = await to(
-      sdk.currentUser.profile(),
-    );
-
-    const currentUser = getProfileSuccess;
-
-    if (getProfileErr) {
-      console.error('getProfileErr: ', getProfileErr);
-      throw getProfileErr;
-    }
 
     let playlistId = null;
 
@@ -52,7 +52,7 @@ export class AppConsumer {
     // Re-uses fixed playlist in development for debugging purpose
     const [createOrUpdatePlaylistErr, createOrUpdatePlaylistSuccess] = await to(
       sdk.playlists[isProd ? 'createPlaylist' : 'changePlaylistDetails'](
-        isProd ? currentUser.id : process.env.DEBUG_SPTFY_PLAYLIST_ID,
+        isProd ? sptfyUser.id : process.env.DEBUG_SPTFY_PLAYLIST_ID,
         {
           name: `sc2sptfy - ${scUser.username}`,
           description: 'Generated with https://sc2sptfy.vercel.app',
@@ -121,7 +121,6 @@ export class AppConsumer {
 
     newData = {
       ...newData,
-      sptfyUser: currentUser,
       totalItems: scItems.length,
       currentItem: 0,
       matchCount: 0,
@@ -180,9 +179,13 @@ export class AppConsumer {
       throw mapSpotifyItemsErrors;
     }
 
+    await job.update({ ...job.data, playlistId });
+
     await job.progress(100);
 
-    job.update({ ...job.data, playlistId });
+    await this.generationModel.findByIdAndUpdate(docId, {
+      status: 'completed',
+    });
   }
 
   @OnQueueActive()
