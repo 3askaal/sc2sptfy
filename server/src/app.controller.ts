@@ -33,24 +33,6 @@ export class AppController {
       accessToken,
     );
 
-    const [addJobError, addJobSuccess] = await to(
-      this.generationQue.add(
-        {
-          scUser: user,
-          selection,
-          accessToken,
-        },
-        {
-          jobId: accessToken.access_token,
-        },
-      ),
-    );
-
-    if (addJobError) {
-      console.error('addJobError: ', addJobError);
-      throw addJobError;
-    }
-
     const [getProfileErr, getProfileSuccess] = await to(
       sdk.currentUser.profile(),
     );
@@ -63,8 +45,27 @@ export class AppController {
     const generationItem = await this.generationModel.create({
       scUser: String(user.id),
       sptfyUser: String(getProfileSuccess.id),
-      jobId: addJobSuccess.id,
     });
+
+    const [addJobError] = await to(
+      this.generationQue.add(
+        {
+          scUser: user,
+          sptfyUser: getProfileSuccess,
+          selection,
+          accessToken,
+          docId: generationItem._id,
+        },
+        {
+          jobId: String(generationItem._id),
+        },
+      ),
+    );
+
+    if (addJobError) {
+      console.error('addJobError: ', addJobError);
+      throw addJobError;
+    }
 
     return generationItem._id;
   }
@@ -82,13 +83,10 @@ export class AppController {
 
   @Get('generate/:id/cancel')
   async cancel(@Param() { id }): Promise<any> {
-    const generateJob = await this.generationQue.getJob(id);
+    const generationItem = await this.generationModel.findById(id);
+    const generateJob = await this.generationQue.getJob(generationItem.jobId);
 
-    return generateJob.moveToFailed(
-      {
-        message: 'Canceled by user',
-      },
-      false,
-    );
+    await generateJob.remove();
+    await this.generationModel.findByIdAndUpdate(id, { status: 'canceled' });
   }
 }
