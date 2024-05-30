@@ -14,10 +14,10 @@ export const cleanSearchQuery = (searchQuery: string) => {
       .replace(/\s{2,}/g, ' ')
       // remove starting and ending whitespace
       .trim()
+      // convert to lowercase
+      .toLowerCase()
   );
 };
-
-export const lc = (value: string) => value.toLowerCase();
 
 const removeAllTracksFromPlaylist = async (
   sdk: SpotifyApi,
@@ -56,13 +56,11 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
   let match = null;
   let lookupIndex = 0;
 
-  const scItemString = lc(JSON.stringify(Object.values(scItem)));
+  const scItemString = cleanSearchQuery(JSON.stringify(Object.values(scItem)));
 
   const searchQueries = [
-    cleanSearchQuery(lc(scItem.title)),
-    `${lc(scItem.user)} ${cleanSearchQuery(lc(scItem.title))}`,
-    lc(scItem.title),
-    `${lc(scItem.user)} ${lc(scItem.title)}`,
+    cleanSearchQuery(scItem.title),
+    cleanSearchQuery(`${scItem.user} ${scItem.title}`),
   ];
 
   while (!match && lookupIndex < searchQueries.length) {
@@ -73,7 +71,6 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
     );
 
     if (sptfySearchErr) {
-      console.error('sptfySearchErr: ', sptfySearchErr);
       throw sptfySearchErr;
     }
 
@@ -81,24 +78,18 @@ const findTrack = async (sdk: SpotifyApi, scItem: any) => {
       return null;
     }
 
-    const matches = sptfySearchSuccess.tracks.items.filter((sptfyItem) => {
-      const sptfyItemValues = sptfyItem.artists.map(({ name }) => name);
+    match = sptfySearchSuccess.tracks.items.find((sptfyItem) => {
+      const sptfyItemValues = [
+        sptfyItem.name,
+        ...sptfyItem.artists.map(({ name }) => name),
+      ];
 
       return sptfyItemValues.some((sptfyItemValue) =>
-        scItemString.includes(lc(sptfyItemValue)),
+        scItemString.includes(cleanSearchQuery(sptfyItemValue)),
       );
     });
 
-    if (matches.length) {
-      match = matches[0];
-    }
-
     lookupIndex++;
-  }
-
-  if (!match) {
-    console.log('scItemString: ', scItemString);
-    console.log('searchQueries: ', searchQueries);
   }
 
   return match;
