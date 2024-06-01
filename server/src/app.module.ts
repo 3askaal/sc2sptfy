@@ -26,7 +26,6 @@ const redisConfig = () => {
   return {
     host: 'localhost',
     port: 6379,
-    showFriendlyErrorStack: true,
   };
 };
 
