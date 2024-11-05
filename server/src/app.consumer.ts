@@ -8,7 +8,7 @@ import {
 import { Job } from 'bull';
 import to from 'await-to-js';
 import sequential from 'promise-sequential';
-import { Playlist, SpotifyApi } from '@spotify/web-api-ts-sdk';
+import { SpotifyApi } from '@spotify/web-api-ts-sdk';
 import { AppService } from './app.service';
 import { sptfy } from './app.helpers';
 import { InjectModel } from '@nestjs/mongoose';
@@ -44,35 +44,17 @@ export class AppConsumer {
       accessToken,
     );
 
-    let playlistId = null;
-
-    const isProd = process.env.NODE_ENV === 'production';
-
-    // Creates new playlist in production
-    // Re-uses fixed playlist in development for debugging purpose
-    const [createOrUpdatePlaylistErr, createOrUpdatePlaylistSuccess] = await to(
-      sdk.playlists[isProd ? 'createPlaylist' : 'changePlaylistDetails'](
-        isProd ? sptfyUser.id : process.env.DEBUG_SPTFY_PLAYLIST_ID,
-        {
-          name: `sc2sptfy - ${scUser.username}`,
-          description: 'Generated with https://sc2sptfy.vercel.app',
-          public: false,
-        },
-      ) as Promise<Playlist | void>,
+    const [createPlaylistErr, createPlaylistSuccess] = await to(
+      sdk.playlists.createPlaylist(sptfyUser.id, {
+        name: `sc2sptfy - ${scUser.username}`,
+        description: 'Generated with https://sc2sptfy.vercel.app',
+        public: false,
+      }),
     );
 
-    if (createOrUpdatePlaylistErr) {
-      console.error('createOrUpdatePlaylistErr: ', createOrUpdatePlaylistErr);
-      throw createOrUpdatePlaylistErr;
-    }
-
-    playlistId =
-      (createOrUpdatePlaylistSuccess as any)?.id ||
-      process.env.DEBUG_SPTFY_PLAYLIST_ID;
-
-    // Cleans up playlist used for debugging in development
-    if (!isProd) {
-      await sptfy.removeAllTracksFromPlaylist(sdk, playlistId);
+    if (createPlaylistErr) {
+      console.error('createPlaylistErr: ', createPlaylistErr);
+      throw createPlaylistErr;
     }
 
     const scItems = [];
@@ -145,7 +127,10 @@ export class AppConsumer {
 
           if (tempMatches.length === 50 || index === scItems.length - 1) {
             const [addTrackToPlaylistErr] = await to(
-              sdk.playlists.addItemsToPlaylist(playlistId, tempMatches),
+              sdk.playlists.addItemsToPlaylist(
+                createPlaylistSuccess.id,
+                tempMatches,
+              ),
             );
 
             if (addTrackToPlaylistErr) {
@@ -179,7 +164,10 @@ export class AppConsumer {
       throw mapSpotifyItemsErrors;
     }
 
-    await job.update({ ...job.data, playlistId });
+    await job.update({
+      ...job.data,
+      playlistId: createPlaylistSuccess.id,
+    });
 
     await job.progress(100);
 
